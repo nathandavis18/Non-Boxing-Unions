@@ -7,6 +7,12 @@ indent_size = 2
 indent_style = space
 tab_width = 2
 
+# yml script files
+[*.yml]
+indent_size = 2
+indent_style = space
+tab_width = 2
+
 # C# files
 [*.cs]
 
