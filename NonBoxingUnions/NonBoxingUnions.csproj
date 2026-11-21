@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
@@ -9,11 +10,23 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
+  </PropertyGroup>
 
+  <PropertyGroup>
     <PackageId>NonBoxingUnions.Generator</PackageId>
     <Version>1.0.0</Version>
     <Authors>Nathan Davis</Authors>
     <Description>A source generator for creating non-boxing unions</Description>
+    <Copyright>Copyright © 2026 Nathan Davis</Copyright>
+
+    <PackageTags>c#;union;net11</PackageTags>
+    <RepositoryUrl>https://github.com/nathandavis18/Non-Boxing-Unions</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/nathandavis18/Non-Boxing-Unions</PackageProjectUrl>
+    <PackageReleaseNotes>Initial Release to support creating non-boxing unions in .NET 11.</PackageReleaseNotes>
+
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,6 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
