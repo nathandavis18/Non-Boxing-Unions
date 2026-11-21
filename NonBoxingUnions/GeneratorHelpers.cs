@@ -35,6 +35,7 @@ internal static class GeneratorHelpers
 
 		for (int generic = 1; generic <= 16; generic++)
 		{
+			cb.AppendLine();
 			string typeParams = string.Join(", ", Enumerable.Range(1, generic).Select(i => $"T{i}"));
 			cb.AppendLine("""
 						  /// <summary>
