@@ -110,7 +110,7 @@ internal class NonBoxingUnionGeneratorTests
 		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
 		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
 
-		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d.Descriptor == NonBoxingUnionDiagnostics.DuplicateUnionTypeRule));
+		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d!.Descriptor == NonBoxingUnionDiagnostics.DuplicateUnionTypeRule));
 	}
 
 	[Test]
@@ -139,7 +139,7 @@ internal class NonBoxingUnionGeneratorTests
 		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
 		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
 
-		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d.Descriptor == NonBoxingUnionDiagnostics.DuplicateUnionTypeRule));
+		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d!.Descriptor == NonBoxingUnionDiagnostics.DuplicateUnionTypeRule));
 	}
 
 	[Test]
@@ -168,6 +168,6 @@ internal class NonBoxingUnionGeneratorTests
 		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
 		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
 
-		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d.Descriptor == NonBoxingUnionDiagnostics.UnionMustDeclareTypeRule));
+		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d!.Descriptor == NonBoxingUnionDiagnostics.UnionMustDeclareTypeRule));
 	}
 }
