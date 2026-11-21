@@ -26,9 +26,11 @@ internal static class GeneratorHelpers
 					  /// </summary>
 					  """);
 
+		// Disable the "Parameter '_' is unread" warning. I know it is unread, but I can read the types from the ctor data.
+		sb.AppendLine("#pragma warning disable CS9113");
 		sb.AppendLine("[System.AttributeUsage(System.AttributeTargets.Struct, AllowMultiple = false)]");
-		sb.AppendLine(
-			"public sealed class NonBoxingUnionAttribute(params System.Type[] _) : System.Attribute;");
+		sb.AppendLine("public sealed class NonBoxingUnionAttribute(params System.Type[] _) : System.Attribute;");
+		sb.AppendLine("#pragma warning restore CS9113");
 
 		for (int generic = 1; generic <= 16; generic++)
 		{
