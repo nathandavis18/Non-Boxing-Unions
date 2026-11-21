@@ -15,23 +15,6 @@ namespace NonBoxingUnions
 	[Generator]
 	internal sealed class NonBoxingUnionGenerator : IIncrementalGenerator
 	{
-		private static readonly DiagnosticDescriptor DuplicateUnionTypeRule = new(
-			id: "NBU001",
-			title: "Duplicate type in union",
-			messageFormat: "NonBoxingUnion '{0}' cannot contain duplicate type '{1}'",
-			category: "NonBoxingUnion",
-			defaultSeverity: DiagnosticSeverity.Error,
-			isEnabledByDefault: true);
-
-		private static readonly DiagnosticDescriptor UnionMustDeclareType = new(
-			id: "NBU002",
-			title: "Invalid Union Declaration",
-			messageFormat: "NonBoxingUnion '{0}' must declare at least 1 type",
-			category: "NonBoxingUnion",
-			defaultSeverity: DiagnosticSeverity.Error,
-			isEnabledByDefault: true);
-
-
 		public void Initialize(IncrementalGeneratorInitializationContext context)
 		{
 			context.RegisterPostInitializationOutput(GeneratorHelpers.RegisterPostInitializationOutput);
@@ -73,7 +56,7 @@ namespace NonBoxingUnions
 				if (source.Parameters.IsDefaultOrEmpty)
 				{
 					spc.ReportDiagnostic(Diagnostic.Create(
-						UnionMustDeclareType,
+						NonBoxingUnionDiagnostics.UnionMustDeclareTypeRule,
 						source.Location.ToLocation(),
 						source.Name));
 
@@ -85,7 +68,7 @@ namespace NonBoxingUnions
 					foreach (string duplicate in source.DuplicateTypes)
 					{
 						spc.ReportDiagnostic(Diagnostic.Create(
-							DuplicateUnionTypeRule,
+							NonBoxingUnionDiagnostics.DuplicateUnionTypeRule,
 							source.Location.ToLocation(),
 							source.Name,
 							duplicate));

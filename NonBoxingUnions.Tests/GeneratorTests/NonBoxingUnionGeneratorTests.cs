@@ -83,4 +83,91 @@ internal class NonBoxingUnionGeneratorTests
 		foreach (var step in outputSteps)
 			Assert.That(step.Reason, Is.EqualTo(IncrementalStepRunReason.Cached).Or.EqualTo(IncrementalStepRunReason.Unchanged));
 	}
+
+	[Test]
+	public void GeneratorMarksUnionsWithDuplicateTypes()
+	{
+		string source =
+			"""
+			namespace NonBoxingUnions.Tests.GeneratorTests;
+
+			[NonBoxingUnion<int, double, float, string, int>]
+			public partial struct MyUnion;
+			""";
+
+		SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
+		var references = AppDomain.CurrentDomain.GetAssemblies()
+			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
+			.Select(a => MetadataReference.CreateFromFile(a.Location));
+
+		CSharpCompilation compilation = CSharpCompilation.Create(
+			assemblyName: "NonBoxingUnions.Tests",
+			syntaxTrees: [syntaxTree],
+			references: references,
+			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+		NonBoxingUnionGenerator generator = new();
+		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
+
+		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d.Descriptor == NonBoxingUnionDiagnostics.DuplicateUnionTypeRule));
+	}
+
+	[Test]
+	public void GeneratorMarksUnionsWithDuplicateTypesUsingParams()
+	{
+		string source =
+			"""
+			namespace NonBoxingUnions.Tests.GeneratorTests;
+
+			[NonBoxingUnion(typeof(int), typeof(double), typeof(float), typeof(double))]
+			public partial struct MyUnion;
+			""";
+
+		SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
+		var references = AppDomain.CurrentDomain.GetAssemblies()
+			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
+			.Select(a => MetadataReference.CreateFromFile(a.Location));
+
+		CSharpCompilation compilation = CSharpCompilation.Create(
+			assemblyName: "NonBoxingUnions.Tests",
+			syntaxTrees: [syntaxTree],
+			references: references,
+			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+		NonBoxingUnionGenerator generator = new();
+		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
+
+		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d.Descriptor == NonBoxingUnionDiagnostics.DuplicateUnionTypeRule));
+	}
+
+	[Test]
+	public void GeneratorMarksUnionsMissingType()
+	{
+		string source =
+			"""
+			namespace NonBoxingUnions.Tests.GeneratorTests;
+
+			[NonBoxingUnion]
+			public partial struct MyUnion;
+			""";
+
+		SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
+		var references = AppDomain.CurrentDomain.GetAssemblies()
+			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
+			.Select(a => MetadataReference.CreateFromFile(a.Location));
+
+		CSharpCompilation compilation = CSharpCompilation.Create(
+			assemblyName: "NonBoxingUnions.Tests",
+			syntaxTrees: [syntaxTree],
+			references: references,
+			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+		NonBoxingUnionGenerator generator = new();
+		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
+
+		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d.Descriptor == NonBoxingUnionDiagnostics.UnionMustDeclareTypeRule));
+	}
 }
