@@ -56,7 +56,7 @@ public partial class NonBoxingUnionTests
 	}
 
 	[Test]
-	public void ValueReturnsCorrectValue()
+	public void ValueReturnsCorrectValueType()
 	{
 		MyUnion x = 10;
 
@@ -64,6 +64,30 @@ public partial class NonBoxingUnionTests
 		Assert.That(x.Value, Is.TypeOf<int>());
 		Assert.That(x.Value, Is.Not.TypeOf<double>());
 		Assert.That(x.Value, Is.Not.TypeOf<float>());
+	}
+
+	[Test]
+	public void NonBoxingUnionDoesNotCreateHeapAllocation()
+	{
+		MyUnion x = 10;
+
+		// Warm up the JIT
+		x.TryGetValue(out int _);
+
+		// Calculate GC allocations made
+		long bytesBefore = GC.GetAllocatedBytesForCurrentThread();
+
+		// Assign to double since all 3 types can be implicitly cast to double at compile time
+		double y = x switch 
+		{
+			int i => i,
+			double d => d,
+			float f => f
+		};
+
+		long bytesAfter = GC.GetAllocatedBytesForCurrentThread();
+
+		Assert.That(bytesAfter - bytesBefore, Is.EqualTo(0));
 	}
 
 	[Test]
@@ -127,9 +151,33 @@ public partial class NonBoxingUnionTests
 		Assert.That(x.Value, Is.Not.TypeOf<float>());
 	}
 
+	[Test]
+	public void ParamsNonBoxingUnionDoesNotCreateHeapAllocation()
+	{
+		ParamsUnion x = 10;
+
+		// Warm up the JIT
+		x.TryGetValue(out int _);
+
+		// Calculate GC allocations made
+		long bytesBefore = GC.GetAllocatedBytesForCurrentThread();
+
+		// Assign to double since all 3 types can be implicitly cast to double at compile time
+		double y = x switch
+		{
+			int i => i,
+			double d => d,
+			float f => f
+		};
+
+		long bytesAfter = GC.GetAllocatedBytesForCurrentThread();
+
+		Assert.That(bytesAfter - bytesBefore, Is.EqualTo(0));
+	}
+
 	[NonBoxingUnion<int, double, float>]
 	private partial struct MyUnion;
 
-	[NonBoxingUnion(typeof(int), typeof(string), typeof(float), typeof(double))]
+	[NonBoxingUnion(typeof(int), typeof(float), typeof(double))]
 	private partial struct ParamsUnion;
 }
