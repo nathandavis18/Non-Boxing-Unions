@@ -28,8 +28,11 @@ ___
 
 This package will generate 17 attributes:
 
-- 1 attribute which allows *infinite* types via a `params Type[]` ctor
+- 1 attribute which allows up to 255 types via a `params Type[]` ctor (`byte.MaxValue`).
+	- If a request is made to allow supporting more than 255 types I can change the underlying tag tracker to a larger data type, or to have it be more dynamic and choose the lowest memory footprint possible. However, if you make a union with more than 255 types you are crazy :P
 - 16 attributes, which will allow you to use up to 16 generic type arguments
+
+
 
 When declaring a non-boxing union, all you have to do is include the namespace, then apply the attribute to a partial struct:
 
