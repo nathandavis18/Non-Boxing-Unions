@@ -18,10 +18,19 @@ namespace NonBoxingUnions
 		private static readonly DiagnosticDescriptor DuplicateUnionTypeRule = new(
 			id: "NBU001",
 			title: "Duplicate type in union",
-			messageFormat: "Union '{0}' cannot contain duplicate type '{1}'",
+			messageFormat: "NonBoxingUnion '{0}' cannot contain duplicate type '{1}'",
 			category: "NonBoxingUnion",
 			defaultSeverity: DiagnosticSeverity.Error,
 			isEnabledByDefault: true);
+
+		private static readonly DiagnosticDescriptor UnionMustDeclareType = new(
+			id: "NBU002",
+			title: "Invalid Union Declaration",
+			messageFormat: "NonBoxingUnion '{0}' must declare at least 1 type",
+			category: "NonBoxingUnion",
+			defaultSeverity: DiagnosticSeverity.Error,
+			isEnabledByDefault: true);
+
 
 		public void Initialize(IncrementalGeneratorInitializationContext context)
 		{
@@ -61,6 +70,16 @@ namespace NonBoxingUnions
 		{
 			context.RegisterSourceOutput(declarations, static (spc, source) =>
 			{
+				if (source.Parameters.IsDefaultOrEmpty)
+				{
+					spc.ReportDiagnostic(Diagnostic.Create(
+						UnionMustDeclareType,
+						source.Location.ToLocation(),
+						source.Name));
+
+					return;
+				}
+
 				if (source.DuplicateTypes.Count > 0)
 				{
 					foreach (string duplicate in source.DuplicateTypes)

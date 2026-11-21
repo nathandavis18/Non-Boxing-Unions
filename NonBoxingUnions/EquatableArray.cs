@@ -8,11 +8,11 @@ namespace NonBoxingUnions;
 
 internal readonly struct EquatableArray<T>(ImmutableArray<T> array) : IEquatable<EquatableArray<T>>, IEnumerable<T> where T : IEquatable<T>
 {
-	public static readonly EquatableArray<T> Empty = new(ImmutableArray<T>.Empty);
 	private readonly ImmutableArray<T> _array = array;
 
-	public ImmutableArray<T> AsImmutableArray() => _array.IsDefault ? ImmutableArray<T>.Empty : _array;
 	public int Count => AsImmutableArray().Length;
+	public bool IsDefaultOrEmpty => AsImmutableArray().IsDefaultOrEmpty;
+	public ImmutableArray<T> AsImmutableArray() => _array.IsDefaultOrEmpty ? ImmutableArray<T>.Empty : _array;
 
 	public bool Equals(EquatableArray<T> other) => AsImmutableArray().SequenceEqual(other.AsImmutableArray());
 	public override bool Equals(object? obj) => obj is EquatableArray<T> other && Equals(other);
