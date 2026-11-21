@@ -9,6 +9,9 @@ namespace NonBoxingUnions;
 
 internal static class GeneratorHelpers
 {
+	internal const string AttributeNamespace = "NonBoxingUnions";
+	internal const string AttributeName = "NonBoxingUnionAttribute";
+
 	private static readonly SymbolDisplayFormat Format =
 		SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
 
@@ -16,7 +19,7 @@ internal static class GeneratorHelpers
 	{
 		ctx.AddEmbeddedAttributeDefinition();
 
-		CodeBuilder cb = new("namespace NonBoxingUnions;");
+		CodeBuilder cb = new($"namespace {AttributeNamespace};");
 
 		cb.AppendLine("""
 					  /// <summary>
@@ -30,7 +33,7 @@ internal static class GeneratorHelpers
 		cb.AppendEmbeddedAttribute();
 		cb.AppendGeneratedCodeAttribute();
 		cb.AppendAttributeUsageAttribute();
-		cb.AppendLine("internal sealed class NonBoxingUnionAttribute(params global::System.Type[] _) : global::System.Attribute;");
+		cb.AppendLine($"internal sealed class {AttributeName}(params global::System.Type[] _) : global::System.Attribute;");
 		cb.AppendLine("#pragma warning restore CS9113");
 
 		for (int generic = 1; generic <= 16; generic++)
@@ -46,15 +49,14 @@ internal static class GeneratorHelpers
 			cb.AppendEmbeddedAttribute();
 			cb.AppendGeneratedCodeAttribute();
 			cb.AppendAttributeUsageAttribute();
-			cb.AppendLine($"internal sealed class NonBoxingUnionAttribute<{typeParams}> : global::System.Attribute;");
+			cb.AppendLine($"internal sealed class {AttributeName}<{typeParams}> : global::System.Attribute;");
 		}
 
-		ctx.AddSource("NonBoxingUnionAttributes.g.cs", SourceText.From(cb.ToString(), Encoding.UTF8));
+		ctx.AddSource($"{AttributeName}.g.cs", SourceText.From(cb.ToString(), Encoding.UTF8));
 	}
 
 	internal static TypeModel GetTypeModelForUnion(IReadOnlyList<ITypeSymbol> types, INamedTypeSymbol typeSymbol)
 	{
-		// Check for duplicate types using SymbolEqualityComparer
 		HashSet<ITypeSymbol> seen = new(SymbolEqualityComparer.Default);
 		List<string> duplicateTypes = [];
 

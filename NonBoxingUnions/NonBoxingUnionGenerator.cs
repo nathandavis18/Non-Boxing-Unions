@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -29,7 +28,7 @@ namespace NonBoxingUnions
 			context.RegisterPostInitializationOutput(GeneratorHelpers.RegisterPostInitializationOutput);
 
 			RegisterSourceOutput(context, context.SyntaxProvider.ForAttributeWithMetadataName(
-					"NonBoxingUnions.NonBoxingUnionAttribute",
+					$"{GeneratorHelpers.AttributeNamespace}.{GeneratorHelpers.AttributeName}",
 					predicate: static (node, _) => node is StructDeclarationSyntax { Arity: 0 },
 					transform: static (ctx, _) =>
 					{
@@ -47,7 +46,7 @@ namespace NonBoxingUnions
 			for (int generic = 1; generic <= 16; ++generic)
 			{
 				RegisterSourceOutput(context, context.SyntaxProvider.ForAttributeWithMetadataName(
-					$"NonBoxingUnions.NonBoxingUnionAttribute`{generic}",
+					$"{GeneratorHelpers.AttributeNamespace}.{GeneratorHelpers.AttributeName}`{generic}",
 					predicate: static (node, _) => node is StructDeclarationSyntax { Arity: 0 },
 					transform: static (ctx, _) =>
 					{
@@ -91,15 +90,15 @@ namespace NonBoxingUnions
 				cb.AppendGeneratedCodeAttribute();
 				using (cb.WriteBlock($"readonly partial struct {source.Name} : global::System.Runtime.CompilerServices.IUnion"))
 				{
-					cb.AppendFieldDeclarations(source.Parameters);
+					UnionMemberHelpers.AppendFieldDeclarations(cb, source.Parameters);
 					cb.AppendLine();
-					cb.AppendConstructors(source.Parameters, source.Name);
+					UnionMemberHelpers.AppendConstructors(cb, source.Parameters, source.Name);
 					cb.AppendLine();
-					cb.AppendLine($"public bool HasValue => _tag > 0 && _tag < {source.OnePastHighestTag};");
+					UnionMemberHelpers.AppendHasValue(cb, source.OnePastHighestTag);
 					cb.AppendLine();
-					cb.AppendValueProperty(source);
+					UnionMemberHelpers.AppendValueProperty(cb, source);
 					cb.AppendLine();
-					cb.AppendTryGetValues(source.Parameters);
+					UnionMemberHelpers.AppendTryGetValues(cb, source.Parameters);
 				}
 
 				foreach (ContainingType _ in source.ContainingTypes)
