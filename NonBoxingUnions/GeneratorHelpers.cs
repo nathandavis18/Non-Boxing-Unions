@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
@@ -97,10 +96,10 @@ internal static class GeneratorHelpers
 		return new TypeModel(
 			typeSymbol.Name,
 			typeNamespace,
-			containingTypes,
-			duplicateTypes,
-			location,
-			parameters.ToImmutableArray(),
+			containingTypes.ToEquatableArray(),
+			duplicateTypes.ToEquatableArray(),
+			new EquatableLocation(location),
+			parameters.ToEquatableArray(),
 			tagNumber);
 	}
 }

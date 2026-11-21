@@ -1,6 +1,4 @@
-﻿using NUnit.Framework;
-
-namespace NonBoxingUnions.Tests;
+﻿namespace NonBoxingUnions.Tests;
 
 [TestFixture]
 public partial class NonBoxingUnionTests

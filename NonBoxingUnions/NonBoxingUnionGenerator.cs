@@ -67,7 +67,7 @@ namespace NonBoxingUnions
 					{
 						spc.ReportDiagnostic(Diagnostic.Create(
 							DuplicateUnionTypeRule,
-							source.Location,
+							source.Location.ToLocation(),
 							source.Name,
 							duplicate));
 					}
@@ -90,15 +90,15 @@ namespace NonBoxingUnions
 				cb.AppendGeneratedCodeAttribute();
 				using (cb.WriteBlock($"readonly partial struct {source.Name} : global::System.Runtime.CompilerServices.IUnion"))
 				{
-					UnionMemberHelpers.AppendFieldDeclarations(cb, source.Parameters);
+					UnionMemberHelpers.AppendFieldDeclarations(cb, source.Parameters.AsImmutableArray());
 					cb.AppendLine();
-					UnionMemberHelpers.AppendConstructors(cb, source.Parameters, source.Name);
+					UnionMemberHelpers.AppendConstructors(cb, source.Parameters.AsImmutableArray(), source.Name);
 					cb.AppendLine();
 					UnionMemberHelpers.AppendHasValue(cb, source.OnePastHighestTag);
 					cb.AppendLine();
 					UnionMemberHelpers.AppendValueProperty(cb, source);
 					cb.AppendLine();
-					UnionMemberHelpers.AppendTryGetValues(cb, source.Parameters);
+					UnionMemberHelpers.AppendTryGetValues(cb, source.Parameters.AsImmutableArray());
 				}
 
 				foreach (ContainingType _ in source.ContainingTypes)

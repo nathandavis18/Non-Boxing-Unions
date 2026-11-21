@@ -64,7 +64,7 @@ internal static class UnionMemberHelpers
 	{
 		foreach (Parameter type in types)
 		{
-			using (cb.WriteBlock($"public bool TryGetValue({(type.IsValueType ? null : "[global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)]")} out {type.FullyQualifiedName}{(type.IsValueType ? null : " ? ")} value)"))
+			using (cb.WriteBlock($"public bool TryGetValue({(type.IsValueType ? null : "[global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] ")}out {type.FullyQualifiedName}{(type.IsValueType ? null : "?")} value)"))
 			{
 				using (cb.WriteBlock($"if ({TagIdentifier} == {type.TagNumber})"))
 				{
