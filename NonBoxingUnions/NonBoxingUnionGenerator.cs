@@ -83,13 +83,12 @@ namespace NonBoxingUnions
 					StringBuilder sb = new();
 					sb.AppendLine("#nullable enable");
 					sb.AppendLine(source.Namespace);
-					foreach (INamedTypeSymbol type in source.ContainingTypes)
+					foreach (ContainingType type in source.ContainingTypes)
 					{
 						string parentKind = type.IsRecord ? type.IsValueType ? "record struct" : "record"
 							: type.IsValueType ? "struct" : "class";
-						string parentName = type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
 
-						sb.AppendLine($"partial {parentKind} {parentName}");
+						sb.AppendLine($"partial {parentKind} {type.Name}");
 						sb.AppendLine("{");
 					}
 
@@ -104,7 +103,7 @@ namespace NonBoxingUnions
 					sb.AppendLine(GeneratorHelpers.GetTryGetValues(source.Parameters));
 					sb.AppendLine("}");
 
-					foreach (INamedTypeSymbol _ in source.ContainingTypes)
+					foreach (ContainingType _ in source.ContainingTypes)
 						sb.AppendLine("}");
 
 					string formattedCode = CSharpSyntaxTree.ParseText(sb.ToString()).GetRoot().NormalizeWhitespace()

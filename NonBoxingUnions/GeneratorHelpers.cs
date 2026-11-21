@@ -82,11 +82,11 @@ internal static class GeneratorHelpers
 			? null
 			: $"namespace {typeSymbol.ContainingNamespace.ToDisplayString()};";
 
-		Stack<INamedTypeSymbol> containingTypes = new();
+		Stack<ContainingType> containingTypes = new();
 		INamedTypeSymbol? current = typeSymbol.ContainingType;
 		while (current is not null)
 		{
-			containingTypes.Push(current);
+			containingTypes.Push(new ContainingType(current.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat), current.IsValueType, current.IsRecord));
 			current = current.ContainingType;
 		}
 
