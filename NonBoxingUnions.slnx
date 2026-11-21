@@ -2,6 +2,6 @@
   <Folder Name="/Solution Items/">
     <File Path=".editorconfig" />
   </Folder>
-  <Project Path="NonBoxingUnion/NonBoxingUnions.csproj" />
   <Project Path="NonBoxingUnions.Tests/NonBoxingUnions.Tests.csproj" />
+  <Project Path="NonBoxingUnions/NonBoxingUnions.csproj" />
 </Solution>
