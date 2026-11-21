@@ -3,7 +3,7 @@
 namespace NonBoxingUnions.Tests;
 
 [TestFixture]
-public partial class NonBoxingUnionGeneratorTests
+public partial class NonBoxingUnionTests
 {
 	[Test]
 	public void NonBoxingUnionGetsIntValue()

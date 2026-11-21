@@ -1,0 +1,181 @@
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Text;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
+
+namespace NonBoxingUnions;
+
+internal static class GeneratorHelpers
+{
+	private static readonly SymbolDisplayFormat Format =
+		SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle
+			.Omitted);
+
+	internal static void RegisterPostInitializationOutput(IncrementalGeneratorPostInitializationContext ctx)
+	{
+		StringBuilder sb = new();
+		sb.AppendLine("namespace NonBoxingUnions;");
+
+		sb.AppendLine("""
+					  /// <summary>
+					  /// Represents a union with the types specified in this attribute's ctor.
+					  /// Can only be applied to structs, and will mark them as <see langword="readonly" />
+					  /// </summary>
+					  """);
+
+		sb.AppendLine("[System.AttributeUsage(System.AttributeTargets.Struct, AllowMultiple = false)]");
+		sb.AppendLine(
+			"public sealed class NonBoxingUnionAttribute(params System.Type[] _) : System.Attribute;");
+
+		for (int generic = 1; generic <= 16; generic++)
+		{
+			string typeParams = string.Join(", ", Enumerable.Range(1, generic).Select(i => $"T{i}"));
+			sb.AppendLine("""
+						  /// <summary>
+						  /// Represents a union with the generic types specified on this attribute.
+						  /// Can only be applied to structs, and will mark them as <see langword="readonly" />
+						  /// </summary>
+						  """);
+			sb.AppendLine("[System.AttributeUsage(System.AttributeTargets.Struct, AllowMultiple = false)]");
+			sb.AppendLine($"public sealed class NonBoxingUnionAttribute<{typeParams}> : System.Attribute;");
+		}
+
+		string formattedCode = CSharpSyntaxTree.ParseText(sb.ToString()).GetRoot().NormalizeWhitespace()
+			.ToFullString();
+		ctx.AddSource("NonBoxingUnionAttributes.g.cs", SourceText.From(formattedCode, Encoding.UTF8));
+	}
+
+	internal static TypeModel GetTypeModelForUnion(IReadOnlyList<ITypeSymbol> types, INamedTypeSymbol typeSymbol)
+	{
+		// Check for duplicate types using SymbolEqualityComparer
+		HashSet<ITypeSymbol> seen = new(SymbolEqualityComparer.Default);
+		List<string> duplicateTypes = [];
+
+		foreach (ITypeSymbol type in types)
+		{
+			if (!seen.Add(type))
+				duplicateTypes.Add(type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+		}
+
+		// Grab the location of the attribute (or struct identifier) to underline in the IDE
+		Location location = typeSymbol.Locations.FirstOrDefault() ?? Location.None;
+
+		IEnumerable<ITypeSymbol> valueTypes = types.Where(t => t.IsValueType);
+		IEnumerable<ITypeSymbol> otherTypes = types.Where(t => !t.IsValueType);
+
+		int tagNumber = 1;
+		List<Parameter> parameters = valueTypes.Select(p =>
+			new Parameter(p.ToDisplayString(Format), p.IsValueType, tagNumber++)).ToList();
+
+		parameters =
+		[
+			.. parameters,
+			.. otherTypes.Select(t => new Parameter(t.ToDisplayString(Format), false, tagNumber++))
+		];
+
+		string? typeNamespace = typeSymbol.ContainingNamespace.IsGlobalNamespace
+			? null
+			: $"namespace {typeSymbol.ContainingNamespace.ToDisplayString()};";
+
+		Stack<INamedTypeSymbol> containingTypes = new();
+		INamedTypeSymbol? current = typeSymbol.ContainingType;
+		while (current is not null)
+		{
+			containingTypes.Push(current);
+			current = current.ContainingType;
+		}
+
+		return new TypeModel(
+			typeSymbol.Name,
+			typeNamespace,
+			containingTypes,
+			duplicateTypes,
+			location,
+			parameters.ToImmutableArray(),
+			tagNumber);
+	}
+
+	internal static string GetValueTypeDeclarations(ImmutableArray<Parameter> types)
+	{
+		StringBuilder stringBuilder = new();
+		stringBuilder.AppendLine("private readonly byte _tag;");
+		foreach (Parameter type in types.Where(t => t.IsValueType))
+			stringBuilder.AppendLine($"private readonly {type.FullyQualifiedName} _field{type.TagNumber};");
+
+		if (types.Any(t => !t.IsValueType))
+			stringBuilder.AppendLine("private readonly object? _refValue;");
+
+		return stringBuilder.ToString();
+	}
+
+	internal static string GetUnionConstructors(ImmutableArray<Parameter> types, string unionName)
+	{
+		StringBuilder stringBuilder = new();
+		foreach (Parameter type in types)
+		{
+			stringBuilder.Append($$"""
+								   public {{unionName}}({{type.FullyQualifiedName}} value)
+								   {
+								       _tag = {{type.TagNumber}};
+								       {{(type.IsValueType ? $"_field{type.TagNumber}" : "_refValue")}} = value;
+								   }
+
+								   """);
+		}
+
+		return stringBuilder.ToString();
+	}
+
+	internal static string GetValueProperty(TypeModel model)
+	{
+		StringBuilder stringBuilder = new();
+		stringBuilder.AppendLine("public object? Value => _tag switch");
+		stringBuilder.AppendLine("{");
+
+		int currentTag = 1;
+		foreach (Parameter type in model.Parameters.Where(t => t.IsValueType))
+		{
+			stringBuilder.AppendLine($"{type.TagNumber} => _field{type.TagNumber},");
+			currentTag = type.TagNumber + 1;
+		}
+
+		if (currentTag < model.OnePastHighestTag)
+		{
+			for (; currentTag < model.OnePastHighestTag - 1; ++currentTag)
+				stringBuilder.Append($"{currentTag} or ");
+			stringBuilder.AppendLine($"{currentTag} => _refValue,");
+		}
+
+		stringBuilder.AppendLine("_ => null");
+		stringBuilder.Append("};");
+
+		return stringBuilder.ToString();
+	}
+
+	internal static string GetTryGetValues(ImmutableArray<Parameter> types)
+	{
+		StringBuilder stringBuilder = new();
+		foreach (Parameter type in types)
+		{
+			stringBuilder.Append($$"""
+								   public bool TryGetValue({{(type.IsValueType ? null : "[global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)]")}} out {{type.FullyQualifiedName}}{{(type.IsValueType ? null : "?")}} value)
+								   {
+								       if (_tag == {{type.TagNumber}})
+								       {
+								           value = {{(type.IsValueType ? $"_field{type.TagNumber}" : $"({type.FullyQualifiedName})_refValue!")}};
+								           return true;
+								       }
+								       
+								       value = default;
+								       return false;
+								   }
+
+								   """);
+		}
+
+		return stringBuilder.ToString();
+	}
+}
