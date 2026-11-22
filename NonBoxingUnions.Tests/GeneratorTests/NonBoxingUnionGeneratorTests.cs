@@ -206,4 +206,69 @@ internal class NonBoxingUnionGeneratorTests
 
 		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d!.Descriptor == NonBoxingUnionDiagnostics.UnionMustDeclareTypeRule));
 	}
+
+	[Test]
+	public void GeneratorMarksUnionsMissingPartialModifier()
+	{
+		string source =
+			"""
+			namespace NonBoxingUnions.Tests.GeneratorTests;
+
+			[NonBoxingUnion<int, char>]
+			public struct MyUnion;
+			""";
+
+		SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
+		var references = AppDomain.CurrentDomain.GetAssemblies()
+			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
+			.Select(a => MetadataReference.CreateFromFile(a.Location));
+
+		CSharpCompilation compilation = CSharpCompilation.Create(
+			assemblyName: "NonBoxingUnions.Tests",
+			syntaxTrees: [syntaxTree],
+			references: references,
+			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+		NonBoxingUnionGenerator generator = new();
+		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
+
+		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d!.Descriptor == NonBoxingUnionDiagnostics.UnionMustBePartialRule));
+	}
+
+	[Test]
+	public void GeneratorMarksUnionsWhoseEnclosingTypesAreMissingPartialModifier()
+	{
+		string source =
+			"""
+			namespace NonBoxingUnions.Tests.GeneratorTests;
+
+			class OuterDummy
+			{
+				class InnerDummy
+				{
+					[NonBoxingUnion<int, char>]
+					public struct MyUnion;
+				}
+			}
+			""";
+
+		SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
+		var references = AppDomain.CurrentDomain.GetAssemblies()
+			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
+			.Select(a => MetadataReference.CreateFromFile(a.Location));
+
+		CSharpCompilation compilation = CSharpCompilation.Create(
+			assemblyName: "NonBoxingUnions.Tests",
+			syntaxTrees: [syntaxTree],
+			references: references,
+			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+		NonBoxingUnionGenerator generator = new();
+		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
+
+		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d!.Descriptor == NonBoxingUnionDiagnostics.AllEnclosingTypesMustBePartialRule));
+		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d!.GetMessage().Contains("OuterDummy") && d!.GetMessage().Contains("InnerDummy")));
+	}
 }
