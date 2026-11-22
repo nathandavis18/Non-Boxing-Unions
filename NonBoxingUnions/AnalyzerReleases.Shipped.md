@@ -1,4 +1,12 @@
-﻿## Release 1.0.0
+﻿## Release 1.1.0
+
+### New Rules
+
+Rule ID |    Category    | Severity |        Notes
+--------|----------------|----------|------------------------
+NBU002  | NonBoxingUnion |  Error   | NonBoxingUnionGenerator
+
+## Release 1.0.0
 
 ### New Rules
 
