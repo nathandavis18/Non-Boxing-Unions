@@ -23,4 +23,6 @@ internal readonly record struct TypeModel(
 	EquatableArray<string> DuplicateTypes,
 	EquatableLocation Location,
 	EquatableArray<Parameter> Parameters,
-	int OnePastHighestTag);
+	int OnePastHighestTag,
+	bool IsPartial,
+	EquatableArray<string> NonPartialEnclosingTypes);

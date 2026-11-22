@@ -4,38 +4,47 @@
 
 namespace NonBoxingUnions.Tests.GeneratorTests;
 
-[global::System.Runtime.CompilerServices.UnionAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
+[global::System.Runtime.CompilerServices.Union]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
 readonly partial struct MyUnion : global::System.Runtime.CompilerServices.IUnion
 {
+    [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
+    private readonly struct PackedStruct
+    {
+        [global::System.Runtime.InteropServices.FieldOffset(0)] public readonly int Field1;
+        [global::System.Runtime.InteropServices.FieldOffset(0)] public readonly double Field2;
+
+        public PackedStruct(int value) => Field1 = value;
+        public PackedStruct(double value) => Field2 = value;
+    }
+
+    private readonly object? _refTypeField;
+    private readonly PackedStruct _valueTypeField;
     private readonly byte _tag;
-    private readonly int _field1;
-    private readonly double _field2;
-    private readonly object? _refValue;
 
     public MyUnion(int value)
     {
         _tag = 1;
-        _field1 = value;
+        _valueTypeField = new PackedStruct(value);
     }
     public MyUnion(double value)
     {
         _tag = 2;
-        _field2 = value;
+        _valueTypeField = new PackedStruct(value);
     }
     public MyUnion(string value)
     {
         _tag = 3;
-        _refValue = value;
+        _refTypeField = value;
     }
 
     public bool HasValue => _tag > 0 && _tag < 4;
 
     public object? Value => _tag switch
     {
-        1 => _field1,
-        2 => _field2,
-        3 => _refValue,
+        1 => _valueTypeField.Field1,
+        2 => _valueTypeField.Field2,
+        3 => _refTypeField,
         _ => null
     };
 
@@ -43,7 +52,7 @@ readonly partial struct MyUnion : global::System.Runtime.CompilerServices.IUnion
     {
         if (_tag == 1)
         {
-            value = _field1;
+            value = _valueTypeField.Field1;
             return true;
         }
 
@@ -54,18 +63,18 @@ readonly partial struct MyUnion : global::System.Runtime.CompilerServices.IUnion
     {
         if (_tag == 2)
         {
-            value = _field2;
+            value = _valueTypeField.Field2;
             return true;
         }
 
         value = default;
         return false;
     }
-    public bool TryGetValue([global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] out string? value)
+    public bool TryGetValue([global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? value)
     {
         if (_tag == 3)
         {
-            value = (string)_refValue!;
+            value = (string)_refTypeField!;
             return true;
         }
 

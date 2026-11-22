@@ -15,7 +15,7 @@
 
   <PropertyGroup>
     <PackageId>NonBoxingUnions.Generator</PackageId>
-    <Version>1.1.0</Version>
+    <Version>2.0.0</Version>
     <Authors>Nathan Davis</Authors>
     <Description>A source generator for creating non-boxing unions</Description>
     <Copyright>Copyright © 2026 Nathan Davis</Copyright>
@@ -25,9 +25,9 @@
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/nathandavis18/Non-Boxing-Unions</PackageProjectUrl>
     <PackageReleaseNotes>
-      - No longer usese a Syntax Tree to maintain code formatting
-      - Added a new Error Code when a NonBoxingUnion does not declare any types (NBU002)
-      - Uses equatable types so the unions only get regenerated when they are modified
+      - Added new Error Codes when the NonBoxingUnion's struct or its enclosing types are not declared as partial.
+      - Performs struct packing, bringing the union's size down drastically for unions that declare lots of value types.
+      - Increased type limit to support up to 2,147,483,647 (`int.MaxValue`)
     </PackageReleaseNotes>
 
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

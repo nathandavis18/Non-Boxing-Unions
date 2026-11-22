@@ -1,24 +1,34 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace NonBoxingUnions;
 
 internal static class UnionMemberHelpers
 {
-	private const string ValueTypeIdentifier = "_field";
-	private const string RefTypeIdentifier = "_refValue";
+	private const string StructIdentifier = "PackedStruct";
+	private const string StructFieldIdentifier = "Field";
+	private const string ValueTypeIdentifier = "_valueTypeField";
+	private const string RefTypeIdentifier = "_refTypeField";
 	private const string TagIdentifier = "_tag";
 	private static string GetFieldName(bool isValueType, int tagNumber) =>
-		isValueType ? $"{ValueTypeIdentifier}{tagNumber}" : RefTypeIdentifier;
+		isValueType ? $"{ValueTypeIdentifier}.{StructFieldIdentifier}{tagNumber}" : RefTypeIdentifier;
 
 	internal static void AppendFieldDeclarations(CodeBuilder cb, ImmutableArray<Parameter> types)
 	{
-		cb.AppendLine($"private readonly byte {TagIdentifier};");
-		foreach (Parameter type in types.Where(t => t.IsValueType))
-			cb.AppendLine($"private readonly {type.FullyQualifiedName} {GetFieldName(true, type.TagNumber)};");
+		if (types.Any(t => t.IsValueType))
+		{
+			AppendEnclosedStruct(cb, types);
+			cb.AppendLine();
+		}
 
 		if (types.Any(t => !t.IsValueType))
 			cb.AppendLine($"private readonly object? {RefTypeIdentifier};");
+
+		if (types.Any(t => t.IsValueType))
+			cb.AppendLine($"private readonly {StructIdentifier} {ValueTypeIdentifier};");
+
+		cb.AppendLine($"private readonly {GetMinimumRequiredSizeTypeForTagIdentifer(types.Length)} {TagIdentifier};");
 	}
 
 	internal static void AppendConstructors(CodeBuilder cb, ImmutableArray<Parameter> types, string unionName)
@@ -28,7 +38,10 @@ internal static class UnionMemberHelpers
 			using (cb.WriteBlock($"public {unionName}({type.FullyQualifiedName} value)"))
 			{
 				cb.AppendLine($"{TagIdentifier} = {type.TagNumber};");
-				cb.AppendLine($"{GetFieldName(type.IsValueType, type.TagNumber)} = value;");
+				if (type.IsValueType)
+					cb.AppendLine($"{ValueTypeIdentifier} = new {StructIdentifier}(value);");
+				else
+					cb.AppendLine($"{RefTypeIdentifier} = value;");
 			}
 		}
 	}
@@ -64,7 +77,7 @@ internal static class UnionMemberHelpers
 	{
 		foreach (Parameter type in types)
 		{
-			using (cb.WriteBlock($"public bool TryGetValue({(type.IsValueType ? null : "[global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)] ")}out {type.FullyQualifiedName}{(type.IsValueType ? null : "?")} value)"))
+			using (cb.WriteBlock($"public bool TryGetValue({(type.IsValueType ? null : "[global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] ")}out {type.FullyQualifiedName}{(type.IsValueType ? null : "?")} value)"))
 			{
 				using (cb.WriteBlock($"if ({TagIdentifier} == {type.TagNumber})"))
 				{
@@ -75,13 +88,37 @@ internal static class UnionMemberHelpers
 					cb.AppendLine("return true;");
 				}
 
+				cb.AppendLine();
 				cb.AppendLine(
-				"""
-					
+					"""
 					value = default;
 					return false;
 					""");
 			}
 		}
 	}
+
+	private static void AppendEnclosedStruct(CodeBuilder cb, ImmutableArray<Parameter> types)
+	{
+		cb.AppendLine("[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]");
+		using (cb.WriteBlock($"private readonly struct {StructIdentifier}"))
+		{
+			const string fieldOffset = "[global::System.Runtime.InteropServices.FieldOffset(0)]";
+			foreach (Parameter type in types.Where(t => t.IsValueType))
+				cb.AppendLine($"{fieldOffset} public readonly {type.FullyQualifiedName} {StructFieldIdentifier}{type.TagNumber};");
+
+			cb.AppendLine();
+
+			foreach (Parameter type in types.Where(t => t.IsValueType))
+				cb.AppendLine($"public {StructIdentifier}({type.FullyQualifiedName} value) => {StructFieldIdentifier}{type.TagNumber} = value;");
+		}
+	}
+
+	private static string GetMinimumRequiredSizeTypeForTagIdentifer(int identifierCount) => identifierCount switch
+	{
+		> 0 and <= byte.MaxValue => "byte",
+		> byte.MaxValue and <= ushort.MaxValue => "ushort",
+		> ushort.MaxValue and <= int.MaxValue => "int",
+		_ => throw new ArgumentOutOfRangeException(nameof(identifierCount))
+	};
 }

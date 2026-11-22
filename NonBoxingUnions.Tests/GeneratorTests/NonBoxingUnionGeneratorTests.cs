@@ -42,6 +42,42 @@ internal class NonBoxingUnionGeneratorTests
 	}
 
 	[Test]
+	public Task GeneratorUsesLargerTypeWhenUnionHasMoreThan255Types()
+	{
+		var references = AppDomain.CurrentDomain.GetAssemblies()
+			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
+			.Select(a => MetadataReference.CreateFromFile(a.Location));
+
+		CSharpCompilation compilation = CSharpCompilation.Create(
+			assemblyName: "NonBoxingUnions.Tests",
+			references: references,
+			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+		for (int i = 1; i <= 256; ++i)
+			compilation = compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText($"public struct Dummy{i};"));
+
+		string typeParams = string.Join(", ", Enumerable.Range(1, 256).Select(i => $"typeof(Dummy{i})"));
+		string source =
+			$"""
+			namespace NonBoxingUnions.Tests.GeneratorTests;
+
+			[NonBoxingUnion({typeParams})]
+			public partial struct MyUnion;
+			""";
+
+		compilation = compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source));
+
+		NonBoxingUnionGenerator generator = new();
+		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+		Assert.That(diagnostics, Is.Empty);
+		Assert.That(outputCompilation.GetDiagnostics(), Is.Empty);
+
+		return Verify(driver);
+	}
+
+	[Test]
 	public void GeneratorPerformsIncrementalCaching()
 	{
 		string source =
@@ -169,5 +205,70 @@ internal class NonBoxingUnionGeneratorTests
 		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
 
 		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d!.Descriptor == NonBoxingUnionDiagnostics.UnionMustDeclareTypeRule));
+	}
+
+	[Test]
+	public void GeneratorMarksUnionsMissingPartialModifier()
+	{
+		string source =
+			"""
+			namespace NonBoxingUnions.Tests.GeneratorTests;
+
+			[NonBoxingUnion<int, char>]
+			public struct MyUnion;
+			""";
+
+		SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
+		var references = AppDomain.CurrentDomain.GetAssemblies()
+			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
+			.Select(a => MetadataReference.CreateFromFile(a.Location));
+
+		CSharpCompilation compilation = CSharpCompilation.Create(
+			assemblyName: "NonBoxingUnions.Tests",
+			syntaxTrees: [syntaxTree],
+			references: references,
+			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+		NonBoxingUnionGenerator generator = new();
+		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
+
+		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d!.Descriptor == NonBoxingUnionDiagnostics.UnionMustBePartialRule));
+	}
+
+	[Test]
+	public void GeneratorMarksUnionsWhoseEnclosingTypesAreMissingPartialModifier()
+	{
+		string source =
+			"""
+			namespace NonBoxingUnions.Tests.GeneratorTests;
+
+			class OuterDummy
+			{
+				class InnerDummy
+				{
+					[NonBoxingUnion<int, char>]
+					public struct MyUnion;
+				}
+			}
+			""";
+
+		SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
+		var references = AppDomain.CurrentDomain.GetAssemblies()
+			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
+			.Select(a => MetadataReference.CreateFromFile(a.Location));
+
+		CSharpCompilation compilation = CSharpCompilation.Create(
+			assemblyName: "NonBoxingUnions.Tests",
+			syntaxTrees: [syntaxTree],
+			references: references,
+			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+		NonBoxingUnionGenerator generator = new();
+		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
+
+		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d!.Descriptor == NonBoxingUnionDiagnostics.AllEnclosingTypesMustBePartialRule));
+		Assert.That(diagnostics, Has.One.Matches<Diagnostic>(d => d!.GetMessage().Contains("OuterDummy") && d!.GetMessage().Contains("InnerDummy")));
 	}
 }

@@ -53,29 +53,8 @@ namespace NonBoxingUnions
 		{
 			context.RegisterSourceOutput(declarations, static (spc, source) =>
 			{
-				if (source.Parameters.IsDefaultOrEmpty)
-				{
-					spc.ReportDiagnostic(Diagnostic.Create(
-						NonBoxingUnionDiagnostics.UnionMustDeclareTypeRule,
-						source.Location.ToLocation(),
-						source.Name));
-
+				if (OutputErrorsIfExist(spc, source))
 					return;
-				}
-
-				if (source.DuplicateTypes.Count > 0)
-				{
-					foreach (string duplicate in source.DuplicateTypes)
-					{
-						spc.ReportDiagnostic(Diagnostic.Create(
-							NonBoxingUnionDiagnostics.DuplicateUnionTypeRule,
-							source.Location.ToLocation(),
-							source.Name,
-							duplicate));
-					}
-
-					return;
-				}
 
 				CodeBuilder cb = new(source.Namespace);
 				foreach (ContainingType type in source.ContainingTypes)
@@ -111,6 +90,58 @@ namespace NonBoxingUnions
 
 				spc.AddSource($"{source.Name}.g.cs", SourceText.From(cb.ToString(), Encoding.UTF8));
 			});
+		}
+
+		private static bool OutputErrorsIfExist(SourceProductionContext spc, TypeModel source)
+		{
+			bool result = false;
+
+			if (source.Parameters.IsDefaultOrEmpty)
+			{
+				spc.ReportDiagnostic(Diagnostic.Create(
+					NonBoxingUnionDiagnostics.UnionMustDeclareTypeRule,
+					source.Location.ToLocation(),
+					source.Name));
+
+				result = true;
+			}
+
+			if (source.DuplicateTypes.Count > 0)
+			{
+				foreach (string duplicate in source.DuplicateTypes)
+				{
+					spc.ReportDiagnostic(Diagnostic.Create(
+						NonBoxingUnionDiagnostics.DuplicateUnionTypeRule,
+						source.Location.ToLocation(),
+						source.Name,
+						duplicate));
+				}
+
+				result = true;
+			}
+
+			if (!source.IsPartial)
+			{
+				spc.ReportDiagnostic(Diagnostic.Create(
+					NonBoxingUnionDiagnostics.UnionMustBePartialRule,
+					source.Location.ToLocation(),
+					source.Name));
+
+				result = true;
+			}
+
+			if (source.NonPartialEnclosingTypes.Count > 0)
+			{
+				spc.ReportDiagnostic(Diagnostic.Create(
+					NonBoxingUnionDiagnostics.AllEnclosingTypesMustBePartialRule,
+					source.Location.ToLocation(),
+					source.Name,
+					string.Join(", ", source.NonPartialEnclosingTypes)));
+
+				result = true;
+			}
+
+			return result;
 		}
 	}
 }
