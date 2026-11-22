@@ -42,6 +42,42 @@ internal class NonBoxingUnionGeneratorTests
 	}
 
 	[Test]
+	public Task GeneratorUsesLargerTypeWhenUnionHasMoreThan255Types()
+	{
+		var references = AppDomain.CurrentDomain.GetAssemblies()
+			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
+			.Select(a => MetadataReference.CreateFromFile(a.Location));
+
+		CSharpCompilation compilation = CSharpCompilation.Create(
+			assemblyName: "NonBoxingUnions.Tests",
+			references: references,
+			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+		for (int i = 1; i <= 256; ++i)
+			compilation = compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText($"public struct Dummy{i};"));
+
+		string typeParams = string.Join(", ", Enumerable.Range(1, 256).Select(i => $"typeof(Dummy{i})"));
+		string source =
+			$"""
+			namespace NonBoxingUnions.Tests.GeneratorTests;
+
+			[NonBoxingUnion({typeParams})]
+			public partial struct MyUnion;
+			""";
+
+		compilation = compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source));
+
+		NonBoxingUnionGenerator generator = new();
+		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+		Assert.That(diagnostics, Is.Empty);
+		Assert.That(outputCompilation.GetDiagnostics(), Is.Empty);
+
+		return Verify(driver);
+	}
+
+	[Test]
 	public void GeneratorPerformsIncrementalCaching()
 	{
 		string source =
