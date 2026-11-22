@@ -184,6 +184,11 @@ public partial class NonBoxingUnionTests
 	[Test]
 	public void UnionPacksStruct() => Assert.That(Unsafe.SizeOf<PackingTest>(), Is.EqualTo(8));
 
+	// Same as above, with the addition of some reference types.
+	// When at least 1 reference type is added, a single `object` field is added, which adds another 8 bytes to the union.
+	[Test]
+	public void UnionPacksStructWithReferenceTypes() => Assert.That(Unsafe.SizeOf<PackingWithReferenceTypeTest>(), Is.EqualTo(16));
+
 	[NonBoxingUnion<int, double, float>]
 	private partial struct MyUnion;
 
@@ -192,4 +197,7 @@ public partial class NonBoxingUnionTests
 
 	[NonBoxingUnion<int, byte, char, short, sbyte, ushort>]
 	private partial struct PackingTest;
+
+	[NonBoxingUnion<int, byte, char, short, sbyte, ushort, string, List<int>, char[]>]
+	private partial struct PackingWithReferenceTypeTest;
 }

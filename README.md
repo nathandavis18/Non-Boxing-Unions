@@ -28,13 +28,10 @@ ___
 
 This package will generate 17 attributes:
 
-- 1 attribute which allows up to 255 types via a `params Type[]` ctor (`byte.MaxValue`).
-	- If a request is made to allow supporting more than 255 types I can change the underlying tag tracker to a larger data type, or to have it be more dynamic and choose the lowest memory footprint possible. However, if you make a union with more than 255 types you are crazy :P
-- 16 attributes, which will allow you to use up to 16 generic type arguments
+- 1 attribute which allows up to `int.MaxValue` types via a `params Type[]` ctor.
+- 16 generic attributes, which will allow you to use anywhere from 1-16 generic type arguments
 
-
-
-When declaring a non-boxing union, all you have to do is include the namespace, then apply the attribute to a partial struct:
+When declaring a non-boxing union, all you have to do is include the namespace, then apply the attribute to a partial struct (or alternatively fully qualify the attribute type):
 
 ```cs
 using NonBoxingUnions;
@@ -53,8 +50,13 @@ type is also an enclosed type, its enclosing type must be partial, etc. etc.
 
 ___
 
-# Future Work
+# Full Feature Set
 
-This NuGet package works as is. There are some optimizations to be made down the road, such as struct packing, but as
-a first version I wanted to just get it working and available for everyone to use. This was my first attempt at writing
-a source generator, afterall, so I didn't want to go too crazy right up front.
+* **Does not box value types:** Utilizes the compiler calling `union.TryGetValue(out T value)` to retrieve value types without boxing 
+* **Incremental Generation:** Only re-generates the union when changes have been made
+* **No External Dependencies:** The only dependency is that your consuming project targets .NET 11+
+* **Compiler Errors for malformed attributes:** If your `[NonBoxingUnion]` attribute is malformed (either missing types or has duplicate types) a compiler error will be generated, pointing you to the declaring struct
+* **Supports up to 2,147,483,647 (`int.MaxValue`) value-types:** Do you really need more?
+	* The backing field used to track what value is assigned grows with your declared types. For all reasonable unions this will be a `byte`, but it can grow up to an `int` if needed.
+* **Packs value types:** This union will pack all the value types used such that the value type field will only be as large as the largest value type declared.
+	* This means if you have an `int`, `short`, `ushort`, `byte`, `sbyte`, and `char` the union will only be 8 bytes: 4 bytes for the int, 1 byte for a `byte` tracking tag, and 3 bytes of padding.
