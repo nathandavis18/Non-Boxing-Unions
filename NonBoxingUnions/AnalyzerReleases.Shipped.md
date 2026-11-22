@@ -4,7 +4,7 @@
 
 Rule ID |    Category    | Severity |        Notes
 --------|----------------|----------|------------------------
-NBU002  | NonBoxingUnion |  Error   | NonBoxingUnionGenerator
+NBU002  | NonBoxingUnion |  Error   | Union must declare at least 1 type
 
 ## Release 1.0.0
 
@@ -12,4 +12,4 @@ NBU002  | NonBoxingUnion |  Error   | NonBoxingUnionGenerator
 
 Rule ID |    Category    | Severity |        Notes
 --------|----------------|----------|------------------------
-NBU001  | NonBoxingUnion |  Error   | NonBoxingUnionGenerator
+NBU001  | NonBoxingUnion |  Error   | Union must not have duplicate types

@@ -19,4 +19,20 @@ internal static class NonBoxingUnionDiagnostics
 		category: "NonBoxingUnion",
 		defaultSeverity: DiagnosticSeverity.Error,
 		isEnabledByDefault: true);
+
+	internal static readonly DiagnosticDescriptor UnionMustBePartialRule = new(
+		id: "NBU003",
+		title: "Invalid Struct Declaration",
+		messageFormat: "NonBoxingUnion '{0}' must be declared as `partial`",
+		category: "NonBoxingUnion",
+		defaultSeverity: DiagnosticSeverity.Error,
+		isEnabledByDefault: true);
+
+	internal static readonly DiagnosticDescriptor AllEnclosingTypesMustBePartialRule = new(
+		id: "NBU004",
+		title: "Invalid Enclosing Type Declaration",
+		messageFormat: "The following enclosing types of NonBoxingUnion '{0}' must be declared as partial: {1}",
+		category: "NonBoxingUnion",
+		defaultSeverity: DiagnosticSeverity.Error,
+		isEnabledByDefault: true);
 }

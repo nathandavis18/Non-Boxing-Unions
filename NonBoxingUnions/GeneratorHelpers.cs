@@ -1,4 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -87,8 +89,12 @@ internal static class GeneratorHelpers
 
 		Stack<ContainingType> containingTypes = new();
 		INamedTypeSymbol? current = typeSymbol.ContainingType;
+		Stack<string> nonPartialEnclosingTypes = new();
 		while (current is not null)
 		{
+			if (!IsSymbolPartial(current))
+				nonPartialEnclosingTypes.Push($"'{current.Name}'");
+
 			containingTypes.Push(new ContainingType(current.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat), current.IsValueType, current.IsRecord));
 			current = current.ContainingType;
 		}
@@ -100,6 +106,14 @@ internal static class GeneratorHelpers
 			duplicateTypes.ToEquatableArray(),
 			new EquatableLocation(location),
 			parameters.ToEquatableArray(),
-			tagNumber);
+			tagNumber,
+			IsSymbolPartial(typeSymbol),
+			nonPartialEnclosingTypes.ToEquatableArray());
 	}
+
+	private static bool IsSymbolPartial(INamedTypeSymbol symbol) =>
+		symbol.DeclaringSyntaxReferences
+			.Select(s => s.GetSyntax())
+			.OfType<BaseTypeDeclarationSyntax>()
+			.Any(s => s.Modifiers.Any(SyntaxKind.PartialKeyword));
 }
