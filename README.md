@@ -55,7 +55,7 @@ ___
 * **Does not box value types:** Utilizes the compiler calling `union.TryGetValue(out T value)` to retrieve value types without boxing 
 * **Incremental Generation:** Only re-generates the union when changes have been made
 * **No External Dependencies:** The only dependency is that your consuming project targets .NET 11+
-* **Compiler Errors for malformed attributes:** If your `[NonBoxingUnion]` attribute is malformed (either missing types or has duplicate types) a compiler error will be generated, pointing you to the declaring struct
+* **Compiler Errors for malformed attributes:** If your `[NonBoxingUnion]` attribute is malformed a compiler error will be generated tagging the malformed union.
 * **Supports up to 2,147,483,647 (`int.MaxValue`) value-types:** Do you really need more?
 	* The backing field used to track what value is assigned grows with your declared types. For all reasonable unions this will be a `byte`, but it can grow up to an `int` if needed.
 * **Packs value types:** This union will pack all the value types used such that the value type field will only be as large as the largest value type declared.
