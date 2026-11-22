@@ -5,7 +5,7 @@
 namespace NonBoxingUnions.Tests.GeneratorTests;
 
 [global::System.Runtime.CompilerServices.Union]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
 readonly partial struct MyUnion : global::System.Runtime.CompilerServices.IUnion
 {
     [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]

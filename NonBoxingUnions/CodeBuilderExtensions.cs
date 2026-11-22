@@ -3,7 +3,7 @@
 internal static class CodeBuilderExtensions
 {
 	private const string GeneratorName = "NonBoxingUnions.Generator";
-	private const string VersionNumber = "1.1.0";
+	private const string VersionNumber = "2.0.0";
 
 	extension (CodeBuilder cb)
 	{
