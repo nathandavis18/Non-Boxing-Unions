@@ -10,7 +10,7 @@ namespace NonBoxingUnions;
 /// </summary>
 #pragma warning disable CS9113
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute(params global::System.Type[] _) : global::System.Attribute;
 #pragma warning restore CS9113
@@ -20,7 +20,7 @@ internal sealed class NonBoxingUnionAttribute(params global::System.Type[] _) : 
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1> : global::System.Attribute;
 
@@ -29,7 +29,7 @@ internal sealed class NonBoxingUnionAttribute<T1> : global::System.Attribute;
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2> : global::System.Attribute;
 
@@ -38,7 +38,7 @@ internal sealed class NonBoxingUnionAttribute<T1, T2> : global::System.Attribute
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3> : global::System.Attribute;
 
@@ -47,7 +47,7 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3> : global::System.Attri
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4> : global::System.Attribute;
 
@@ -56,7 +56,7 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4> : global::System.A
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5> : global::System.Attribute;
 
@@ -65,7 +65,7 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5> : global::Syst
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6> : global::System.Attribute;
 
@@ -74,7 +74,7 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6> : global::
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7> : global::System.Attribute;
 
@@ -83,7 +83,7 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7> : glob
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8> : global::System.Attribute;
 
@@ -92,7 +92,7 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8> : 
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9> : global::System.Attribute;
 
@@ -101,7 +101,7 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : global::System.Attribute;
 
@@ -110,7 +110,7 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : global::System.Attribute;
 
@@ -119,7 +119,7 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : global::System.Attribute;
 
@@ -128,7 +128,7 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : global::System.Attribute;
 
@@ -137,7 +137,7 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : global::System.Attribute;
 
@@ -146,7 +146,7 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : global::System.Attribute;
 
@@ -155,6 +155,6 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.EmbeddedAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : global::System.Attribute;

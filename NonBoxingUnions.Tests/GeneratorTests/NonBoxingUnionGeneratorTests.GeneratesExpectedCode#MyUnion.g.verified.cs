@@ -5,7 +5,7 @@
 namespace NonBoxingUnions.Tests.GeneratorTests;
 
 [global::System.Runtime.CompilerServices.UnionAttribute]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "1.1.0")]
 readonly partial struct MyUnion : global::System.Runtime.CompilerServices.IUnion
 {
     private readonly byte _tag;
