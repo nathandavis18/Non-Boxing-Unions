@@ -1,16 +1,26 @@
 ﻿using Microsoft.CodeAnalysis;
-using System.Collections.Generic;
-using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Text;
 
 namespace NonBoxingUnions;
 
+internal readonly record struct ContainingType(string Name, bool IsValueType, bool IsRecord);
+
 internal readonly record struct Parameter(string FullyQualifiedName, bool IsValueType, int TagNumber);
+
+internal readonly record struct EquatableLocation(string FilePath, TextSpan Source, LinePositionSpan Position)
+{
+	public EquatableLocation(Location location)
+	: this(location.SourceTree?.FilePath ?? "", location.SourceSpan, location.GetLineSpan().Span)
+	{ }
+
+	public Location ToLocation() => Location.Create(FilePath, Source, Position);
+}
 
 internal readonly record struct TypeModel(
 	string Name,
 	string? Namespace,
-	Stack<INamedTypeSymbol> ContainingTypes,
-	List<string> DuplicateTypes,
-	Location Location,
-	ImmutableArray<Parameter> Parameters,
+	EquatableArray<ContainingType> ContainingTypes,
+	EquatableArray<string> DuplicateTypes,
+	EquatableLocation Location,
+	EquatableArray<Parameter> Parameters,
 	int OnePastHighestTag);

@@ -1,8 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 
@@ -10,16 +8,19 @@ namespace NonBoxingUnions;
 
 internal static class GeneratorHelpers
 {
+	internal const string AttributeNamespace = "NonBoxingUnions";
+	internal const string AttributeName = "NonBoxingUnionAttribute";
+
 	private static readonly SymbolDisplayFormat Format =
-		SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle
-			.Omitted);
+		SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
 
 	internal static void RegisterPostInitializationOutput(IncrementalGeneratorPostInitializationContext ctx)
 	{
-		StringBuilder sb = new();
-		sb.AppendLine("namespace NonBoxingUnions;");
+		ctx.AddEmbeddedAttributeDefinition();
 
-		sb.AppendLine("""
+		CodeBuilder cb = new($"namespace {AttributeNamespace};");
+
+		cb.AppendLine("""
 					  /// <summary>
 					  /// Represents a union with the types specified in this attribute's ctor.
 					  /// Can only be applied to structs, and will mark them as <see langword="readonly" />
@@ -27,32 +28,34 @@ internal static class GeneratorHelpers
 					  """);
 
 		// Disable the "Parameter '_' is unread" warning. I know it is unread, but I can read the types from the ctor data.
-		sb.AppendLine("#pragma warning disable CS9113");
-		sb.AppendLine("[System.AttributeUsage(System.AttributeTargets.Struct, AllowMultiple = false)]");
-		sb.AppendLine("public sealed class NonBoxingUnionAttribute(params System.Type[] _) : System.Attribute;");
-		sb.AppendLine("#pragma warning restore CS9113");
+		cb.AppendLine("#pragma warning disable CS9113");
+		cb.AppendEmbeddedAttribute();
+		cb.AppendGeneratedCodeAttribute();
+		cb.AppendAttributeUsageAttribute();
+		cb.AppendLine($"internal sealed class {AttributeName}(params global::System.Type[] _) : global::System.Attribute;");
+		cb.AppendLine("#pragma warning restore CS9113");
 
 		for (int generic = 1; generic <= 16; generic++)
 		{
+			cb.AppendLine();
 			string typeParams = string.Join(", ", Enumerable.Range(1, generic).Select(i => $"T{i}"));
-			sb.AppendLine("""
+			cb.AppendLine("""
 						  /// <summary>
 						  /// Represents a union with the generic types specified on this attribute.
 						  /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 						  /// </summary>
 						  """);
-			sb.AppendLine("[System.AttributeUsage(System.AttributeTargets.Struct, AllowMultiple = false)]");
-			sb.AppendLine($"public sealed class NonBoxingUnionAttribute<{typeParams}> : System.Attribute;");
+			cb.AppendEmbeddedAttribute();
+			cb.AppendGeneratedCodeAttribute();
+			cb.AppendAttributeUsageAttribute();
+			cb.AppendLine($"internal sealed class {AttributeName}<{typeParams}> : global::System.Attribute;");
 		}
 
-		string formattedCode = CSharpSyntaxTree.ParseText(sb.ToString()).GetRoot().NormalizeWhitespace()
-			.ToFullString();
-		ctx.AddSource("NonBoxingUnionAttributes.g.cs", SourceText.From(formattedCode, Encoding.UTF8));
+		ctx.AddSource($"{AttributeName}.g.cs", SourceText.From(cb.ToString(), Encoding.UTF8));
 	}
 
 	internal static TypeModel GetTypeModelForUnion(IReadOnlyList<ITypeSymbol> types, INamedTypeSymbol typeSymbol)
 	{
-		// Check for duplicate types using SymbolEqualityComparer
 		HashSet<ITypeSymbol> seen = new(SymbolEqualityComparer.Default);
 		List<string> duplicateTypes = [];
 
@@ -82,102 +85,21 @@ internal static class GeneratorHelpers
 			? null
 			: $"namespace {typeSymbol.ContainingNamespace.ToDisplayString()};";
 
-		Stack<INamedTypeSymbol> containingTypes = new();
+		Stack<ContainingType> containingTypes = new();
 		INamedTypeSymbol? current = typeSymbol.ContainingType;
 		while (current is not null)
 		{
-			containingTypes.Push(current);
+			containingTypes.Push(new ContainingType(current.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat), current.IsValueType, current.IsRecord));
 			current = current.ContainingType;
 		}
 
 		return new TypeModel(
 			typeSymbol.Name,
 			typeNamespace,
-			containingTypes,
-			duplicateTypes,
-			location,
-			parameters.ToImmutableArray(),
+			containingTypes.ToEquatableArray(),
+			duplicateTypes.ToEquatableArray(),
+			new EquatableLocation(location),
+			parameters.ToEquatableArray(),
 			tagNumber);
-	}
-
-	internal static string GetValueTypeDeclarations(ImmutableArray<Parameter> types)
-	{
-		StringBuilder stringBuilder = new();
-		stringBuilder.AppendLine("private readonly byte _tag;");
-		foreach (Parameter type in types.Where(t => t.IsValueType))
-			stringBuilder.AppendLine($"private readonly {type.FullyQualifiedName} _field{type.TagNumber};");
-
-		if (types.Any(t => !t.IsValueType))
-			stringBuilder.AppendLine("private readonly object? _refValue;");
-
-		return stringBuilder.ToString();
-	}
-
-	internal static string GetUnionConstructors(ImmutableArray<Parameter> types, string unionName)
-	{
-		StringBuilder stringBuilder = new();
-		foreach (Parameter type in types)
-		{
-			stringBuilder.Append($$"""
-								   public {{unionName}}({{type.FullyQualifiedName}} value)
-								   {
-								       _tag = {{type.TagNumber}};
-								       {{(type.IsValueType ? $"_field{type.TagNumber}" : "_refValue")}} = value;
-								   }
-
-								   """);
-		}
-
-		return stringBuilder.ToString();
-	}
-
-	internal static string GetValueProperty(TypeModel model)
-	{
-		StringBuilder stringBuilder = new();
-		stringBuilder.AppendLine("public object? Value => _tag switch");
-		stringBuilder.AppendLine("{");
-
-		int currentTag = 1;
-		foreach (Parameter type in model.Parameters.Where(t => t.IsValueType))
-		{
-			stringBuilder.AppendLine($"{type.TagNumber} => _field{type.TagNumber},");
-			currentTag = type.TagNumber + 1;
-		}
-
-		if (currentTag < model.OnePastHighestTag)
-		{
-			for (; currentTag < model.OnePastHighestTag - 1; ++currentTag)
-				stringBuilder.Append($"{currentTag} or ");
-			stringBuilder.AppendLine($"{currentTag} => _refValue,");
-		}
-
-		stringBuilder.AppendLine("_ => null");
-		stringBuilder.Append("};");
-
-		return stringBuilder.ToString();
-	}
-
-	internal static string GetTryGetValues(ImmutableArray<Parameter> types)
-	{
-		StringBuilder stringBuilder = new();
-		foreach (Parameter type in types)
-		{
-			stringBuilder.Append($$"""
-								   public bool TryGetValue({{(type.IsValueType ? null : "[global::System.Diagnostics.CodeAnalysis.NotNullWhenAttribute(true)]")}} out {{type.FullyQualifiedName}}{{(type.IsValueType ? null : "?")}} value)
-								   {
-								       if (_tag == {{type.TagNumber}})
-								       {
-								           value = {{(type.IsValueType ? $"_field{type.TagNumber}" : $"({type.FullyQualifiedName})_refValue!")}};
-								           return true;
-								       }
-								       
-								       value = default;
-								       return false;
-								   }
-
-								   """);
-		}
-
-		return stringBuilder.ToString();
 	}
 }

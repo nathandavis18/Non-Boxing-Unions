@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Immutable;
@@ -16,21 +15,12 @@ namespace NonBoxingUnions
 	[Generator]
 	internal sealed class NonBoxingUnionGenerator : IIncrementalGenerator
 	{
-		private static readonly DiagnosticDescriptor DuplicateUnionTypeRule = new(
-			id: "NBU001",
-			title: "Duplicate type in union",
-			messageFormat: "Union '{0}' cannot contain duplicate type '{1}'",
-			category: "NonBoxingUnion",
-			defaultSeverity: DiagnosticSeverity.Error,
-			isEnabledByDefault: true);
-
 		public void Initialize(IncrementalGeneratorInitializationContext context)
 		{
 			context.RegisterPostInitializationOutput(GeneratorHelpers.RegisterPostInitializationOutput);
 
-			IncrementalValuesProvider<TypeModel> paramsDeclarations =
-				context.SyntaxProvider.ForAttributeWithMetadataName(
-					"NonBoxingUnions.NonBoxingUnionAttribute",
+			RegisterSourceOutput(context, context.SyntaxProvider.ForAttributeWithMetadataName(
+					$"{GeneratorHelpers.AttributeNamespace}.{GeneratorHelpers.AttributeName}",
 					predicate: static (node, _) => node is StructDeclarationSyntax { Arity: 0 },
 					transform: static (ctx, _) =>
 					{
@@ -43,14 +33,12 @@ namespace NonBoxingUnions
 
 						INamedTypeSymbol typeSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
 						return GeneratorHelpers.GetTypeModelForUnion(typeArgs, typeSymbol);
-					});
-
-			RegisterSourceOutput(paramsDeclarations);
+					}));
 
 			for (int generic = 1; generic <= 16; ++generic)
 			{
-				RegisterSourceOutput(context.SyntaxProvider.ForAttributeWithMetadataName(
-					$"NonBoxingUnions.NonBoxingUnionAttribute`{generic}",
+				RegisterSourceOutput(context, context.SyntaxProvider.ForAttributeWithMetadataName(
+					$"{GeneratorHelpers.AttributeNamespace}.{GeneratorHelpers.AttributeName}`{generic}",
 					predicate: static (node, _) => node is StructDeclarationSyntax { Arity: 0 },
 					transform: static (ctx, _) =>
 					{
@@ -59,60 +47,70 @@ namespace NonBoxingUnions
 						return GeneratorHelpers.GetTypeModelForUnion(typeArgs, typeSymbol);
 					}));
 			}
+		}
 
-			return;
-
-			void RegisterSourceOutput(IncrementalValuesProvider<TypeModel> declarations)
+		private static void RegisterSourceOutput(IncrementalGeneratorInitializationContext context, IncrementalValuesProvider<TypeModel> declarations)
+		{
+			context.RegisterSourceOutput(declarations, static (spc, source) =>
 			{
-				context.RegisterSourceOutput(declarations, static (spc, source) =>
+				if (source.Parameters.IsDefaultOrEmpty)
 				{
-					if (source.DuplicateTypes.Count > 0)
-					{
-						foreach (string duplicate in source.DuplicateTypes)
-						{
-							spc.ReportDiagnostic(Diagnostic.Create(
-								DuplicateUnionTypeRule,
-								source.Location,
-								source.Name,
-								duplicate));
-						}
+					spc.ReportDiagnostic(Diagnostic.Create(
+						NonBoxingUnionDiagnostics.UnionMustDeclareTypeRule,
+						source.Location.ToLocation(),
+						source.Name));
 
-						return;
+					return;
+				}
+
+				if (source.DuplicateTypes.Count > 0)
+				{
+					foreach (string duplicate in source.DuplicateTypes)
+					{
+						spc.ReportDiagnostic(Diagnostic.Create(
+							NonBoxingUnionDiagnostics.DuplicateUnionTypeRule,
+							source.Location.ToLocation(),
+							source.Name,
+							duplicate));
 					}
 
-					StringBuilder sb = new();
-					sb.AppendLine("#nullable enable");
-					sb.AppendLine(source.Namespace);
-					foreach (INamedTypeSymbol type in source.ContainingTypes)
-					{
-						string parentKind = type.IsRecord ? type.IsValueType ? "record struct" : "record"
-							: type.IsValueType ? "struct" : "class";
-						string parentName = type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+					return;
+				}
 
-						sb.AppendLine($"partial {parentKind} {parentName}");
-						sb.AppendLine("{");
-					}
+				CodeBuilder cb = new(source.Namespace);
+				foreach (ContainingType type in source.ContainingTypes)
+				{
+					string parentKind = type.IsRecord ? type.IsValueType ? "record struct" : "record"
+						: type.IsValueType ? "struct" : "class";
 
-					sb.AppendLine("[global::System.Runtime.CompilerServices.UnionAttribute]");
-					sb.AppendLine(
-						$"readonly partial struct {source.Name} : global::System.Runtime.CompilerServices.IUnion");
-					sb.AppendLine("{");
-					sb.AppendLine(GeneratorHelpers.GetValueTypeDeclarations(source.Parameters));
-					sb.AppendLine(GeneratorHelpers.GetUnionConstructors(source.Parameters, source.Name));
-					sb.AppendLine($"public bool HasValue => _tag > 0 && _tag < {source.OnePastHighestTag};");
-					sb.AppendLine(GeneratorHelpers.GetValueProperty(source));
-					sb.AppendLine(GeneratorHelpers.GetTryGetValues(source.Parameters));
-					sb.AppendLine("}");
+					cb.AppendLine($"partial {parentKind} {type.Name}");
+					cb.AppendLine("{");
+					cb.Indent();
+				}
 
-					foreach (INamedTypeSymbol _ in source.ContainingTypes)
-						sb.AppendLine("}");
+				cb.AppendUnionAttribute();
+				cb.AppendGeneratedCodeAttribute();
+				using (cb.WriteBlock($"readonly partial struct {source.Name} : global::System.Runtime.CompilerServices.IUnion"))
+				{
+					UnionMemberHelpers.AppendFieldDeclarations(cb, source.Parameters.AsImmutableArray());
+					cb.AppendLine();
+					UnionMemberHelpers.AppendConstructors(cb, source.Parameters.AsImmutableArray(), source.Name);
+					cb.AppendLine();
+					UnionMemberHelpers.AppendHasValue(cb, source.OnePastHighestTag);
+					cb.AppendLine();
+					UnionMemberHelpers.AppendValueProperty(cb, source);
+					cb.AppendLine();
+					UnionMemberHelpers.AppendTryGetValues(cb, source.Parameters.AsImmutableArray());
+				}
 
-					string formattedCode = CSharpSyntaxTree.ParseText(sb.ToString()).GetRoot().NormalizeWhitespace()
-						.ToFullString();
+				foreach (ContainingType _ in source.ContainingTypes)
+				{
+					cb.UnIndent();
+					cb.AppendLine("}");
+				}
 
-					spc.AddSource($"{source.Name}.g.cs", SourceText.From(formattedCode, Encoding.UTF8));
-				});
-			}
+				spc.AddSource($"{source.Name}.g.cs", SourceText.From(cb.ToString(), Encoding.UTF8));
+			});
 		}
 	}
 }
