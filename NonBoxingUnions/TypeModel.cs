@@ -29,7 +29,7 @@ internal readonly record struct TypeModel(
 
 internal enum FieldType
 {
-	PackableStruct,
-	NonPackableStruct,
+	PackedStruct,
+	NonPackedStruct,
 	ReferenceType
 }

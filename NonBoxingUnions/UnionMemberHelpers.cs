@@ -19,10 +19,10 @@ internal static class UnionMemberHelpers
 		if (model.Parameters.Any(t => t.Type is FieldType.ReferenceType))
 			cb.AppendLine($"private readonly object? {RefTypeFieldIdentifier};");
 
-		if (model.Parameters.Any(t => t.Type is FieldType.PackableStruct))
+		if (model.Parameters.Any(t => t.Type is FieldType.PackedStruct))
 			cb.AppendLine($"private readonly {GetPackedStructIdentifier(model)} {PackableFieldIdentifier};");
 
-		foreach (Parameter type in model.Parameters.Where(t => t.Type is FieldType.NonPackableStruct))
+		foreach (Parameter type in model.Parameters.Where(t => t.Type is FieldType.NonPackedStruct))
 			cb.AppendLine($"private readonly {type.FullyQualifiedName} {GetFieldName(type)};");
 
 		cb.AppendLine($"private readonly {TagEnumIdentifier} {TagFieldIdentifier};");
@@ -35,7 +35,7 @@ internal static class UnionMemberHelpers
 			using (cb.WriteBlock($"public {model.Name}({type.FullyQualifiedName} value)"))
 			{
 				cb.AppendLine($"{TagFieldIdentifier} = {TagEnumIdentifier}.{GetEnumIdentifier(type)};");
-				if (type.Type is FieldType.PackableStruct)
+				if (type.Type is FieldType.PackedStruct)
 					cb.AppendLine($"{PackableFieldIdentifier} = new {GetPackedStructIdentifier(model)}(value);");
 				else
 					cb.AppendLine($"{GetFieldName(type)} = value;");
@@ -47,7 +47,7 @@ internal static class UnionMemberHelpers
 	{
 		using (cb.WriteBlock($"public object? Value => {TagFieldIdentifier} switch", false))
 		{
-			foreach (Parameter type in model.Parameters.Where(t => t.Type is FieldType.PackableStruct or FieldType.NonPackableStruct))
+			foreach (Parameter type in model.Parameters.Where(t => t.Type is FieldType.PackedStruct or FieldType.NonPackedStruct))
 				cb.AppendLine($"{TagEnumIdentifier}.{GetEnumIdentifier(type)} => {GetFieldName(type)},");
 
 			if (model.Parameters.Any(p => p.Type is FieldType.ReferenceType))
@@ -95,7 +95,7 @@ internal static class UnionMemberHelpers
 	internal static void AppendEnumDeclaration(CodeBuilder cb, ImmutableArray<Parameter> types)
 	{
 		// Each struct gets its own tag, plus a None tag and a tag for reference types when there is at least 1 reference type.
-		int uniqueTags = types.Count(t => t.Type is FieldType.NonPackableStruct or FieldType.PackableStruct) 
+		int uniqueTags = types.Count(t => t.Type is FieldType.NonPackedStruct or FieldType.PackedStruct) 
 			+ (types.Any(t => t.Type is FieldType.ReferenceType) ? 2 : 1);
 
 		using (cb.WriteBlock($"private enum {TagEnumIdentifier} : {GetMinimumRequiredSizeTypeForTagIdentifer(uniqueTags)}"))
@@ -123,12 +123,12 @@ internal static class UnionMemberHelpers
 		using (cb.WriteBlock($"internal readonly struct {GetPackedStructIdentifier(model)}"))
 		{
 			const string fieldOffset = "[global::System.Runtime.InteropServices.FieldOffset(0)]";
-			foreach (Parameter type in model.Parameters.Where(t => t.Type is FieldType.PackableStruct))
+			foreach (Parameter type in model.Parameters.Where(t => t.Type is FieldType.PackedStruct))
 				cb.AppendLine($"{fieldOffset} public readonly {type.FullyQualifiedName} {GetIdentifierName(type.FullyQualifiedName)};");
 
 			cb.AppendLine();
 
-			foreach (Parameter type in model.Parameters.Where(t => t.Type is FieldType.PackableStruct))
+			foreach (Parameter type in model.Parameters.Where(t => t.Type is FieldType.PackedStruct))
 				cb.AppendLine($"public {GetPackedStructIdentifier(model)}({type.FullyQualifiedName} value) => {GetIdentifierName(type.FullyQualifiedName)} = value;");
 		}
 	}
@@ -140,7 +140,7 @@ internal static class UnionMemberHelpers
 	{
 		if (field.Type is FieldType.ReferenceType)
 			return RefTypeFieldIdentifier;
-		if (field.Type is FieldType.PackableStruct)
+		if (field.Type is FieldType.PackedStruct)
 			return $"{PackableFieldIdentifier}.{GetIdentifierName(field.FullyQualifiedName)}";
 		return GetIdentifierName(field.FullyQualifiedName, prefix: '_', convertToCamelCase: true, forcePrefix: true);
 	}

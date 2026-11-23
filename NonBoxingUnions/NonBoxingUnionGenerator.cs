@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -24,15 +25,17 @@ namespace NonBoxingUnions
 					predicate: static (node, _) => node is StructDeclarationSyntax { Arity: 0 },
 					transform: static (ctx, _) =>
 					{
+						AttributeData attribute = ctx.Attributes[0];
 						ITypeSymbol[] typeArgs =
 						[
-							.. ctx.Attributes[0].ConstructorArguments[0].Values
+							.. attribute.ConstructorArguments[0].Values
 								.Select(c => c.Value as ITypeSymbol)
 								.Where(t => t is not null)!
 						];
 
+						bool disableStructPacking = (bool?)attribute.NamedArguments.FirstOrDefault(n => n.Key == GeneratorHelpers.DisableStructPacking).Value.Value ?? false;
 						INamedTypeSymbol typeSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
-						return GeneratorHelpers.GetTypeModelForUnion(typeArgs, typeSymbol);
+						return GeneratorHelpers.GetTypeModelForUnion(typeArgs, typeSymbol, disableStructPacking);
 					}));
 
 			for (int generic = 1; generic <= 16; ++generic)
@@ -42,9 +45,11 @@ namespace NonBoxingUnions
 					predicate: static (node, _) => node is StructDeclarationSyntax { Arity: 0 },
 					transform: static (ctx, _) =>
 					{
-						ImmutableArray<ITypeSymbol> typeArgs = ctx.Attributes[0].AttributeClass!.TypeArguments;
+						AttributeData attribute = ctx.Attributes[0];
+						ImmutableArray<ITypeSymbol> typeArgs = attribute.AttributeClass!.TypeArguments;
 						INamedTypeSymbol typeSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
-						return GeneratorHelpers.GetTypeModelForUnion(typeArgs, typeSymbol);
+						bool disableStructPacking = (bool?)attribute.NamedArguments.FirstOrDefault(n => n.Key == GeneratorHelpers.DisableStructPacking).Value.Value ?? false;
+						return GeneratorHelpers.GetTypeModelForUnion(typeArgs, typeSymbol, disableStructPacking);
 					}));
 			}
 		}
@@ -92,7 +97,7 @@ namespace NonBoxingUnions
 					cb.AppendLine("}");
 				}
 
-				if (source.Parameters.Any(t => t.Type is FieldType.PackableStruct))
+				if (source.Parameters.Any(t => t.Type is FieldType.PackedStruct))
 				{
 					cb.AppendLine();
 					UnionMemberHelpers.AppendEnclosedStruct(cb, source);

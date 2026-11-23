@@ -12,6 +12,7 @@ internal static class GeneratorHelpers
 {
 	internal const string AttributeNamespace = "NonBoxingUnions";
 	internal const string AttributeName = "NonBoxingUnionAttribute";
+	internal const string DisableStructPacking = "DisableStructPacking";
 
 	private static readonly SymbolDisplayFormat Format =
 		SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
@@ -34,7 +35,14 @@ internal static class GeneratorHelpers
 		cb.AppendEmbeddedAttribute();
 		cb.AppendGeneratedCodeAttribute();
 		cb.AppendAttributeUsageAttribute();
-		cb.AppendLine($"internal sealed class {AttributeName}(params global::System.Type[] _) : global::System.Attribute;");
+		cb.AppendLine(
+			$$"""
+			internal sealed class {{AttributeName}}(params global::System.Type[] _) : global::System.Attribute
+			{
+			    public bool {{DisableStructPacking}} { get; set; }
+			}
+			""");
+			
 		cb.AppendLine("#pragma warning restore CS9113");
 
 		for (int generic = 1; generic <= 16; generic++)
@@ -50,13 +58,19 @@ internal static class GeneratorHelpers
 			cb.AppendEmbeddedAttribute();
 			cb.AppendGeneratedCodeAttribute();
 			cb.AppendAttributeUsageAttribute();
-			cb.AppendLine($"internal sealed class {AttributeName}<{typeParams}> : global::System.Attribute;");
+			cb.AppendLine(
+				$$"""
+				internal sealed class {{AttributeName}}<{{typeParams}}> : global::System.Attribute
+				{
+				    public bool {{DisableStructPacking}} { get; set; }
+				}
+				""");
 		}
 
 		ctx.AddSource($"{AttributeName}.g.cs", SourceText.From(cb.ToString(), Encoding.UTF8));
 	}
 
-	internal static TypeModel GetTypeModelForUnion(IReadOnlyList<ITypeSymbol> types, INamedTypeSymbol typeSymbol)
+	internal static TypeModel GetTypeModelForUnion(IReadOnlyList<ITypeSymbol> types, INamedTypeSymbol typeSymbol, bool disableStructPacking)
 	{
 		HashSet<ITypeSymbol> seen = new(SymbolEqualityComparer.Default);
 		List<string> duplicateTypes = [];
@@ -93,7 +107,7 @@ internal static class GeneratorHelpers
 			containingTypes.ToEquatableArray(),
 			duplicateTypes.ToEquatableArray(),
 			new EquatableLocation(location),
-			types.Select(t => new Parameter(t.ToDisplayString(Format), GetFieldType(t))).ToEquatableArray(),
+			types.Select(t => new Parameter(t.ToDisplayString(Format), GetFieldType(t, disableStructPacking))).ToEquatableArray(),
 			IsSymbolPartial(typeSymbol),
 			nonPartialEnclosingTypes.ToEquatableArray());
 	}
@@ -119,10 +133,12 @@ internal static class GeneratorHelpers
 			.OfType<BaseTypeDeclarationSyntax>()
 			.Any(s => s.Modifiers.Any(SyntaxKind.PartialKeyword));
 
-	private static FieldType GetFieldType(ITypeSymbol symbol)
+	private static FieldType GetFieldType(ITypeSymbol symbol, bool disableStructPacking)
 	{
 		if (!symbol.IsValueType)
 			return FieldType.ReferenceType;
-		return symbol.IsUnmanagedType ? FieldType.PackableStruct : FieldType.NonPackableStruct;
+		if (disableStructPacking)
+			return FieldType.NonPackedStruct;
+		return symbol.IsUnmanagedType ? FieldType.PackedStruct : FieldType.NonPackedStruct;
 	}
 }

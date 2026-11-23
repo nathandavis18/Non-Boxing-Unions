@@ -50,6 +50,37 @@ internal class NonBoxingUnionGeneratorTests
 	}
 
 	[Test]
+	public Task DisableStructPackingMakesAllValueTypesGetTheirOwnField()
+	{
+		string source =
+			"""
+			namespace NonBoxingUnions.Tests.GeneratorTests;
+
+			[NonBoxingUnion<int, string, double>(DisableStructPacking = true)]
+			partial struct MyUnion;
+			""";
+
+		var references = AppDomain.CurrentDomain.GetAssemblies()
+			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
+			.Select(a => MetadataReference.CreateFromFile(a.Location));
+
+		CSharpCompilation compilation = CSharpCompilation.Create(
+			assemblyName: "NonBoxingUnions.Tests",
+			references: references,
+			syntaxTrees: [CSharpSyntaxTree.ParseText(source)],
+			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+		NonBoxingUnionGenerator generator = new();
+		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+
+		Assert.That(diagnostics, Is.Empty);
+		Assert.That(outputCompilation.GetDiagnostics(), Is.Empty);
+
+		return Verify(driver);
+	}
+
+	[Test]
 	public Task GeneratorUsesLargerTypeWhenUnionHasMoreThan255Types()
 	{
 		var references = AppDomain.CurrentDomain.GetAssemblies()
