@@ -74,13 +74,13 @@ internal static class GeneratorHelpers
 		IEnumerable<ITypeSymbol> otherTypes = types.Where(t => !t.IsValueType);
 
 		int tagNumber = 1;
-		List<Parameter> parameters = valueTypes.Select(p =>
-			new Parameter(p.ToDisplayString(Format), p.IsValueType, tagNumber++)).ToList();
+		List<Parameter> parameters = valueTypes.Select(t =>
+			new Parameter(t.ToDisplayString(Format), GetValueTypePackability(t), tagNumber++)).ToList();
 
 		parameters =
 		[
 			.. parameters,
-			.. otherTypes.Select(t => new Parameter(t.ToDisplayString(Format), false, tagNumber++))
+			.. otherTypes.Select(t => new Parameter(t.ToDisplayString(Format), FieldType.ReferenceType, tagNumber++))
 		];
 
 		string? typeNamespace = typeSymbol.ContainingNamespace.IsGlobalNamespace
@@ -116,4 +116,11 @@ internal static class GeneratorHelpers
 			.Select(s => s.GetSyntax())
 			.OfType<BaseTypeDeclarationSyntax>()
 			.Any(s => s.Modifiers.Any(SyntaxKind.PartialKeyword));
+
+	private static FieldType GetValueTypePackability(ITypeSymbol symbol)
+	{
+		if (symbol.IsRefLikeType)
+			return FieldType.PackableStruct;
+		return symbol.IsUnmanagedType ? FieldType.PackableStruct : FieldType.NonPackableStruct;
+	}
 }

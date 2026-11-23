@@ -5,7 +5,7 @@ namespace NonBoxingUnions;
 
 internal readonly record struct ContainingType(string Name, bool IsValueType, bool IsRecord);
 
-internal readonly record struct Parameter(string FullyQualifiedName, bool IsValueType, int TagNumber);
+internal readonly record struct Parameter(string FullyQualifiedName, FieldType Type, int TagNumber);
 
 internal readonly record struct EquatableLocation(string FilePath, TextSpan Source, LinePositionSpan Position)
 {
@@ -26,3 +26,10 @@ internal readonly record struct TypeModel(
 	int OnePastHighestTag,
 	bool IsPartial,
 	EquatableArray<string> NonPartialEnclosingTypes);
+
+internal enum FieldType
+{
+	PackableStruct,
+	NonPackableStruct,
+	ReferenceType
+}
