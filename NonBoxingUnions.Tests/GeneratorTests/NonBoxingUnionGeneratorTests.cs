@@ -16,19 +16,27 @@ internal class NonBoxingUnionGeneratorTests
 			"""
 			namespace NonBoxingUnions.Tests.GeneratorTests;
 
-			[NonBoxingUnion<int, string, double>]
-			public partial struct MyUnion;
+			#pragma warning disable CS0649
+			struct Dummy
+			{
+			    public string Field1 = "";
+
+				public Dummy() {}
+			}
+			#pragma warning restore CS0649
+
+			[NonBoxingUnion<int, string, double, Dummy>]
+			partial struct MyUnion;
 			""";
 
-		SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
 		var references = AppDomain.CurrentDomain.GetAssemblies()
 			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
 			.Select(a => MetadataReference.CreateFromFile(a.Location));
 
 		CSharpCompilation compilation = CSharpCompilation.Create(
 			assemblyName: "NonBoxingUnions.Tests",
-			syntaxTrees: [syntaxTree],
 			references: references,
+			syntaxTrees: [CSharpSyntaxTree.ParseText(source)],
 			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
 		NonBoxingUnionGenerator generator = new();

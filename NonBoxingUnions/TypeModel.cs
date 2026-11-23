@@ -3,9 +3,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace NonBoxingUnions;
 
-internal readonly record struct ContainingType(string Name, bool IsValueType, bool IsRecord);
+internal readonly record struct ContainingType(string Name, bool IsValueType, bool IsRecord, int Arity);
 
-internal readonly record struct Parameter(string FullyQualifiedName, FieldType Type, int TagNumber);
+internal readonly record struct Parameter(string FullyQualifiedName, FieldType Type);
 
 internal readonly record struct EquatableLocation(string FilePath, TextSpan Source, LinePositionSpan Position)
 {
@@ -19,11 +19,11 @@ internal readonly record struct EquatableLocation(string FilePath, TextSpan Sour
 internal readonly record struct TypeModel(
 	string Name,
 	string? Namespace,
+	string FullName,
 	EquatableArray<ContainingType> ContainingTypes,
 	EquatableArray<string> DuplicateTypes,
 	EquatableLocation Location,
 	EquatableArray<Parameter> Parameters,
-	int OnePastHighestTag,
 	bool IsPartial,
 	EquatableArray<string> NonPartialEnclosingTypes);
 

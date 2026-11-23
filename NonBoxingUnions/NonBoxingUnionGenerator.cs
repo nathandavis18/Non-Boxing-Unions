@@ -67,20 +67,24 @@ namespace NonBoxingUnions
 					cb.Indent();
 				}
 
+				cb.AppendLine("#pragma warning disable CS0618");
 				cb.AppendUnionAttribute();
 				cb.AppendGeneratedCodeAttribute();
 				using (cb.WriteBlock($"readonly partial struct {source.Name} : global::System.Runtime.CompilerServices.IUnion"))
 				{
-					UnionMemberHelpers.AppendFieldDeclarations(cb, source.Parameters.AsImmutableArray());
+					UnionMemberHelpers.AppendFieldDeclarations(cb, source);
 					cb.AppendLine();
-					UnionMemberHelpers.AppendConstructors(cb, source.Parameters.AsImmutableArray(), source.Name);
+					UnionMemberHelpers.AppendConstructors(cb, source);
 					cb.AppendLine();
-					UnionMemberHelpers.AppendHasValue(cb, source.OnePastHighestTag);
+					UnionMemberHelpers.AppendHasValue(cb);
 					cb.AppendLine();
 					UnionMemberHelpers.AppendValueProperty(cb, source);
 					cb.AppendLine();
 					UnionMemberHelpers.AppendTryGetValues(cb, source.Parameters.AsImmutableArray());
+					cb.AppendLine();
+					UnionMemberHelpers.AppendEnumDeclaration(cb, source.Parameters.AsImmutableArray());
 				}
+				cb.AppendLine("#pragma warning restore CS0618");
 
 				foreach (ContainingType _ in source.ContainingTypes)
 				{
@@ -88,9 +92,18 @@ namespace NonBoxingUnions
 					cb.AppendLine("}");
 				}
 
-				spc.AddSource($"{source.Name}.g.cs", SourceText.From(cb.ToString(), Encoding.UTF8));
+				if (source.Parameters.Any(t => t.Type is FieldType.PackableStruct))
+				{
+					cb.AppendLine();
+					UnionMemberHelpers.AppendEnclosedStruct(cb, source);
+				}
+
+				spc.AddSource($"{GetFileHintName(source)}", SourceText.From(cb.ToString(), Encoding.UTF8));
 			});
 		}
+
+		private static string GetFileHintName(TypeModel source) =>
+			$"{GeneratorHelpers.GetModelFullyQualifiedName(source)}.g.cs";
 
 		private static bool OutputErrorsIfExist(SourceProductionContext spc, TypeModel source)
 		{

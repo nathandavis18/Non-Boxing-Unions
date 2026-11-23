@@ -175,6 +175,34 @@ public partial class NonBoxingUnionTests
 		Assert.That(bytesAfter - bytesBefore, Is.EqualTo(0));
 	}
 
+	[Test]
+	public void NonDisjointTypesInUnionAreResolvedCorrectly()
+	{
+		NonDisjointTypesUnion x = new Test();
+		Assert.That(x.TryGetValue(out ITest1? _), Is.True);
+		Assert.That(x.TryGetValue(out ITest2? _), Is.True);
+		Assert.That(x.TryGetValue(out Test? _), Is.True);
+		Assert.That(x.TryGetValue(out int _), Is.False);
+
+		x = (ITest1)new Test();
+		Assert.That(x.TryGetValue(out ITest1? _), Is.True);
+		Assert.That(x.TryGetValue(out ITest2? _), Is.True);
+		Assert.That(x.TryGetValue(out Test? _), Is.True);
+		Assert.That(x.TryGetValue(out int _), Is.False);
+
+		x = (ITest2)new Test();
+		Assert.That(x.TryGetValue(out ITest1? _), Is.True);
+		Assert.That(x.TryGetValue(out ITest2? _), Is.True);
+		Assert.That(x.TryGetValue(out Test? _), Is.True);
+		Assert.That(x.TryGetValue(out int _), Is.False);
+
+		x = 3;
+		Assert.That(x.TryGetValue(out ITest1? _), Is.False);
+		Assert.That(x.TryGetValue(out ITest2? _), Is.False);
+		Assert.That(x.TryGetValue(out Test? _), Is.False);
+		Assert.That(x.TryGetValue(out int _), Is.True);
+	}
+
 	// Packs the int/byte/char/short/sbyte/ushort into a struct where all the fields live at the same memory
 	// Since they all live at the same memory, the size of the packed enclosing struct is the size of its largest type (int)
 	// Then there is an extra byte field for tracking which value is currently held by the union, which puts us to 5 bytes.
@@ -189,6 +217,13 @@ public partial class NonBoxingUnionTests
 	[Test]
 	public void UnionPacksStructWithReferenceTypes() => Assert.That(Unsafe.SizeOf<PackingWithReferenceTypeTest>(), Is.EqualTo(16));
 
+	// 8 bytes from the packed double/int/short, 8 bytes for the TestDummy struct, 1 byte for the tag identifier, and 7 bytes of padding.
+	// If the managed struct was packed this would only be 16 bytes (8 bytes for packed struct + 1 byte for tag + 7 bytes of padding).
+	// But since managed structs can't be packed it gets its own space, increasing the size to 24.
+	[Test]
+	public void UnionDoesNotPackNonPackableStructs() => Assert.That(Unsafe.SizeOf<DoesNotPackNonPackableStructs>(), Is.EqualTo(24));
+
+	#region TypeDeclarations
 	[NonBoxingUnion<int, double, float>]
 	private partial struct MyUnion;
 
@@ -200,4 +235,21 @@ public partial class NonBoxingUnionTests
 
 	[NonBoxingUnion<int, byte, char, short, sbyte, ushort, string, List<int>, char[]>]
 	private partial struct PackingWithReferenceTypeTest;
+
+	[NonBoxingUnion<int, ITest1, ITest2, Test>]
+	private partial struct NonDisjointTypesUnion;
+
+	[NonBoxingUnion<double, int, short, TestDummy>]
+	private partial struct DoesNotPackNonPackableStructs;
+
+	private interface ITest1;
+	private interface ITest2;
+	private class Test : ITest1, ITest2;
+	private struct TestDummy
+	{
+#pragma warning disable CS0649
+		public string Field1;
+#pragma warning restore CS0649
+	}
+	#endregion // TypeDeclarations
 }

@@ -20,7 +20,7 @@ internal static class GeneratorHelpers
 	{
 		ctx.AddEmbeddedAttributeDefinition();
 
-		CodeBuilder cb = new($"namespace {AttributeNamespace};");
+		CodeBuilder cb = new(AttributeNamespace);
 
 		cb.AppendLine("""
 					  /// <summary>
@@ -70,22 +70,9 @@ internal static class GeneratorHelpers
 		// Grab the location of the attribute (or struct identifier) to underline in the IDE
 		Location location = typeSymbol.Locations.FirstOrDefault() ?? Location.None;
 
-		IEnumerable<ITypeSymbol> valueTypes = types.Where(t => t.IsValueType);
-		IEnumerable<ITypeSymbol> otherTypes = types.Where(t => !t.IsValueType);
-
-		int tagNumber = 1;
-		List<Parameter> parameters = valueTypes.Select(t =>
-			new Parameter(t.ToDisplayString(Format), GetValueTypePackability(t), tagNumber++)).ToList();
-
-		parameters =
-		[
-			.. parameters,
-			.. otherTypes.Select(t => new Parameter(t.ToDisplayString(Format), FieldType.ReferenceType, tagNumber++))
-		];
-
 		string? typeNamespace = typeSymbol.ContainingNamespace.IsGlobalNamespace
 			? null
-			: $"namespace {typeSymbol.ContainingNamespace.ToDisplayString()};";
+			: typeSymbol.ContainingNamespace.ToDisplayString();
 
 		Stack<ContainingType> containingTypes = new();
 		INamedTypeSymbol? current = typeSymbol.ContainingType;
@@ -95,20 +82,35 @@ internal static class GeneratorHelpers
 			if (!IsSymbolPartial(current))
 				nonPartialEnclosingTypes.Push($"'{current.Name}'");
 
-			containingTypes.Push(new ContainingType(current.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat), current.IsValueType, current.IsRecord));
+			containingTypes.Push(new ContainingType(current.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat), current.IsValueType, current.IsRecord, current.Arity));
 			current = current.ContainingType;
 		}
 
 		return new TypeModel(
 			typeSymbol.Name,
 			typeNamespace,
+			typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
 			containingTypes.ToEquatableArray(),
 			duplicateTypes.ToEquatableArray(),
 			new EquatableLocation(location),
-			parameters.ToEquatableArray(),
-			tagNumber,
+			types.Select(t => new Parameter(t.ToDisplayString(Format), GetFieldType(t))).ToEquatableArray(),
 			IsSymbolPartial(typeSymbol),
 			nonPartialEnclosingTypes.ToEquatableArray());
+	}
+
+	internal static string GetModelFullyQualifiedName(TypeModel source)
+	{
+		StringBuilder sb = new();
+
+		if (!string.IsNullOrEmpty(source.Namespace))
+			sb.Append($"{source.Namespace}.");
+
+		foreach (ContainingType type in source.ContainingTypes)
+			sb.Append($"{type.Name.Replace('<', '{').Replace('>', '}')}.");
+
+		sb.Append(source.FullName.Replace('<', '{').Replace('>', '}'));
+
+		return sb.ToString();
 	}
 
 	private static bool IsSymbolPartial(INamedTypeSymbol symbol) =>
@@ -117,10 +119,10 @@ internal static class GeneratorHelpers
 			.OfType<BaseTypeDeclarationSyntax>()
 			.Any(s => s.Modifiers.Any(SyntaxKind.PartialKeyword));
 
-	private static FieldType GetValueTypePackability(ITypeSymbol symbol)
+	private static FieldType GetFieldType(ITypeSymbol symbol)
 	{
-		if (symbol.IsRefLikeType)
-			return FieldType.PackableStruct;
+		if (!symbol.IsValueType)
+			return FieldType.ReferenceType;
 		return symbol.IsUnmanagedType ? FieldType.PackableStruct : FieldType.NonPackableStruct;
 	}
 }
