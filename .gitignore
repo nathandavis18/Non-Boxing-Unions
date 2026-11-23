@@ -3,3 +3,4 @@ obj
 .vs
 _Resharper.Caches
 *.g.received.cs
+/NonBoxingUnions.Tests/Playground.cs
