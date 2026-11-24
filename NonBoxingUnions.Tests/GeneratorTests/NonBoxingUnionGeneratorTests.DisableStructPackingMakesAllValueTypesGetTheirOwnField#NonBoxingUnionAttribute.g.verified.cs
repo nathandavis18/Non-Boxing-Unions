@@ -10,11 +10,20 @@ namespace NonBoxingUnions;
 /// </summary>
 #pragma warning disable CS9113
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute(params global::System.Type[] _) : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 #pragma warning restore CS9113
 
@@ -23,11 +32,20 @@ internal sealed class NonBoxingUnionAttribute(params global::System.Type[] _) : 
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -35,11 +53,20 @@ internal sealed class NonBoxingUnionAttribute<T1> : global::System.Attribute
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -47,11 +74,20 @@ internal sealed class NonBoxingUnionAttribute<T1, T2> : global::System.Attribute
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -59,11 +95,20 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3> : global::System.Attri
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -71,11 +116,20 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4> : global::System.A
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -83,11 +137,20 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5> : global::Syst
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -95,11 +158,20 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6> : global::
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -107,11 +179,20 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7> : glob
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -119,11 +200,20 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8> : 
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -131,11 +221,20 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -143,11 +242,20 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -155,11 +263,20 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -167,11 +284,20 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -179,11 +305,20 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -191,11 +326,20 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }
 
 /// <summary>
@@ -203,9 +347,18 @@ internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9
 /// Can only be applied to structs, and will mark them as <see langword="readonly" />
 /// </summary>
 [global::Microsoft.CodeAnalysis.Embedded]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.AttributeUsage(global::System.AttributeTargets.Struct, AllowMultiple = false)]
 internal sealed class NonBoxingUnionAttribute<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> : global::System.Attribute
 {
-    public bool DisableStructPacking { get; set; }
+    /// <summary>
+    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+    /// Defaults to <see langword="false"/>.
+    /// </summary>
+    /// <remarks>
+    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+    /// Consider benchmarking performance before disabling.
+    /// </remarks>
+    [global::System.ComponentModel.DefaultValue(false)]
+    public bool DisableStructPacking { get; init; } = false;
 }

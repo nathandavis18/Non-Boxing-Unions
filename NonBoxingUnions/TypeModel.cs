@@ -31,5 +31,6 @@ internal enum FieldType
 {
 	PackedStruct,
 	NonPackedStruct,
+	GenericType,
 	ReferenceType
 }

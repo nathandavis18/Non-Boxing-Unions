@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
@@ -22,19 +21,20 @@ namespace NonBoxingUnions
 
 			RegisterSourceOutput(context, context.SyntaxProvider.ForAttributeWithMetadataName(
 					$"{GeneratorHelpers.AttributeNamespace}.{GeneratorHelpers.AttributeName}",
-					predicate: static (node, _) => node is StructDeclarationSyntax { Arity: 0 },
+					predicate: static (node, _) => node is StructDeclarationSyntax,
 					transform: static (ctx, _) =>
 					{
 						AttributeData attribute = ctx.Attributes[0];
+						INamedTypeSymbol typeSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
 						ITypeSymbol[] typeArgs =
 						[
 							.. attribute.ConstructorArguments[0].Values
 								.Select(c => c.Value as ITypeSymbol)
-								.Where(t => t is not null)!
+								.Where(t => t is not null)!,
+							.. typeSymbol.TypeParameters
 						];
 
 						bool disableStructPacking = (bool?)attribute.NamedArguments.FirstOrDefault(n => n.Key == GeneratorHelpers.DisableStructPacking).Value.Value ?? false;
-						INamedTypeSymbol typeSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
 						return GeneratorHelpers.GetTypeModelForUnion(typeArgs, typeSymbol, disableStructPacking);
 					}));
 
@@ -42,12 +42,17 @@ namespace NonBoxingUnions
 			{
 				RegisterSourceOutput(context, context.SyntaxProvider.ForAttributeWithMetadataName(
 					$"{GeneratorHelpers.AttributeNamespace}.{GeneratorHelpers.AttributeName}`{generic}",
-					predicate: static (node, _) => node is StructDeclarationSyntax { Arity: 0 },
+					predicate: static (node, _) => node is StructDeclarationSyntax,
 					transform: static (ctx, _) =>
 					{
 						AttributeData attribute = ctx.Attributes[0];
-						ImmutableArray<ITypeSymbol> typeArgs = attribute.AttributeClass!.TypeArguments;
 						INamedTypeSymbol typeSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
+						ImmutableArray<ITypeSymbol> typeArgs =
+						[
+							.. attribute.AttributeClass!.TypeArguments,
+							.. typeSymbol.TypeParameters
+						];
+
 						bool disableStructPacking = (bool?)attribute.NamedArguments.FirstOrDefault(n => n.Key == GeneratorHelpers.DisableStructPacking).Value.Value ?? false;
 						return GeneratorHelpers.GetTypeModelForUnion(typeArgs, typeSymbol, disableStructPacking);
 					}));
@@ -75,7 +80,7 @@ namespace NonBoxingUnions
 				cb.AppendLine("#pragma warning disable CS0618");
 				cb.AppendUnionAttribute();
 				cb.AppendGeneratedCodeAttribute();
-				using (cb.WriteBlock($"readonly partial struct {source.Name} : global::System.Runtime.CompilerServices.IUnion"))
+				using (cb.WriteBlock($"readonly partial struct {source.FullName} : global::System.Runtime.CompilerServices.IUnion"))
 				{
 					UnionMemberHelpers.AppendFieldDeclarations(cb, source);
 					cb.AppendLine();

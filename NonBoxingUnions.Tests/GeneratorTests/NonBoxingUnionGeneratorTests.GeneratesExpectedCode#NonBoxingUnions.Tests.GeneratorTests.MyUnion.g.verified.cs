@@ -6,7 +6,7 @@ namespace NonBoxingUnions.Tests.GeneratorTests;
 
 #pragma warning disable CS0618
 [global::System.Runtime.CompilerServices.Union]
-[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "2.0.0")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 readonly partial struct MyUnion : global::System.Runtime.CompilerServices.IUnion
 {
     private readonly object? _refTypeField;
@@ -103,6 +103,7 @@ readonly partial struct MyUnion : global::System.Runtime.CompilerServices.IUnion
 #pragma warning restore CS0618
 
 [global::System.Obsolete("Internal generated type. Do not use directly.")]
+[global::System.CodeDom.Compiler.GeneratedCode("NonBoxingUnions.Generator", "3.0.0")]
 [global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]
 [global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]
 internal readonly struct __NonBoxingUnion_Generated_NonBoxingUnions_Tests_GeneratorTests_MyUnion_PackedStruct

@@ -21,9 +21,12 @@ internal static class UnionMemberHelpers
 
 		if (model.Parameters.Any(t => t.Type is FieldType.PackedStruct))
 			cb.AppendLine($"private readonly {GetPackedStructIdentifier(model)} {PackableFieldIdentifier};");
-
-		foreach (Parameter type in model.Parameters.Where(t => t.Type is FieldType.NonPackedStruct))
-			cb.AppendLine($"private readonly {type.FullyQualifiedName} {GetFieldName(type)};");
+		
+		foreach (Parameter type in model.Parameters.Where(t => t.Type is FieldType.NonPackedStruct or FieldType.GenericType))
+		{
+			string? nullabilityMarker = type.Type is FieldType.GenericType ? "?" : null;
+			cb.AppendLine($"private readonly {type.FullyQualifiedName}{nullabilityMarker} {GetFieldName(type)};");
+		}
 
 		cb.AppendLine($"private readonly {TagEnumIdentifier} {TagFieldIdentifier};");
 	}
@@ -47,7 +50,7 @@ internal static class UnionMemberHelpers
 	{
 		using (cb.WriteBlock($"public object? Value => {TagFieldIdentifier} switch", false))
 		{
-			foreach (Parameter type in model.Parameters.Where(t => t.Type is FieldType.PackedStruct or FieldType.NonPackedStruct))
+			foreach (Parameter type in model.Parameters.Where(t => t.Type is FieldType.PackedStruct or FieldType.NonPackedStruct or FieldType.GenericType))
 				cb.AppendLine($"{TagEnumIdentifier}.{GetEnumIdentifier(type)} => {GetFieldName(type)},");
 
 			if (model.Parameters.Any(p => p.Type is FieldType.ReferenceType))
@@ -66,13 +69,16 @@ internal static class UnionMemberHelpers
 	{
 		foreach (Parameter type in types)
 		{
-			using (cb.WriteBlock($"public bool TryGetValue({(type.Type is FieldType.ReferenceType ? "[global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] " : null)}out {type.FullyQualifiedName}{(type.Type is FieldType.ReferenceType ? "?" : null)} value)"))
+			string? notNullAttribute = type.Type is FieldType.ReferenceType or FieldType.GenericType ? "[global::System.Diagnostics.CodeAnalysis.NotNullWhen(true)] " : null;
+			string? nullabilityMarker = type.Type is FieldType.ReferenceType or FieldType.GenericType ? "?" : null;
+			using (cb.WriteBlock($"public bool TryGetValue({notNullAttribute}out {type.FullyQualifiedName}{nullabilityMarker} value)"))
 			{
 				using (cb.WriteBlock($"if ({TagFieldIdentifier} is {TagEnumIdentifier}.{GetEnumIdentifier(type)})"))
 				{
-					if (type.Type is FieldType.ReferenceType)
+					if (type.Type is FieldType.ReferenceType or FieldType.GenericType)
 					{
-						cb.AppendLine($"value = {RefTypeFieldIdentifier} as {type.FullyQualifiedName};");
+						string field = type.Type is FieldType.GenericType ? GetFieldName(type) : $"{RefTypeFieldIdentifier} as {type.FullyQualifiedName}";
+						cb.AppendLine($"value = {field};");
 						cb.AppendLine($"return value is not null;");
 					}
 					else
@@ -95,7 +101,7 @@ internal static class UnionMemberHelpers
 	internal static void AppendEnumDeclaration(CodeBuilder cb, ImmutableArray<Parameter> types)
 	{
 		// Each struct gets its own tag, plus a None tag and a tag for reference types when there is at least 1 reference type.
-		int uniqueTags = types.Count(t => t.Type is FieldType.NonPackedStruct or FieldType.PackedStruct) 
+		int uniqueTags = types.Count(t => t.Type is FieldType.NonPackedStruct or FieldType.PackedStruct or FieldType.GenericType) 
 			+ (types.Any(t => t.Type is FieldType.ReferenceType) ? 2 : 1);
 
 		using (cb.WriteBlock($"private enum {TagEnumIdentifier} : {GetMinimumRequiredSizeTypeForTagIdentifer(uniqueTags)}"))
@@ -118,6 +124,7 @@ internal static class UnionMemberHelpers
 	internal static void AppendEnclosedStruct(CodeBuilder cb, TypeModel model)
 	{
 		cb.AppendLine("[global::System.Obsolete(\"Internal generated type. Do not use directly.\")]");
+		cb.AppendGeneratedCodeAttribute();
 		cb.AppendLine("[global::System.ComponentModel.EditorBrowsable(global::System.ComponentModel.EditorBrowsableState.Never)]");
 		cb.AppendLine("[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]");
 		using (cb.WriteBlock($"internal readonly struct {GetPackedStructIdentifier(model)}"))

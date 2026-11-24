@@ -203,6 +203,50 @@ public partial class NonBoxingUnionTests
 		Assert.That(x.TryGetValue(out int _), Is.True);
 	}
 
+	[Test]
+	public void UnionsOnGenericTypesWorkAsExpected()
+	{
+		GenericUnion<int, TestDummy, ITest2, Test> u1 = new Test(); // Only matches the generic type, since it is the unconstrained generic type so it has its own tag identifier.
+
+		Assert.That(u1.TryGetValue(out ITest1? _), Is.False);
+		Assert.That(u1.TryGetValue(out ITest2? _), Is.False);
+		Assert.That(u1.TryGetValue(out int _), Is.False);
+		Assert.That(u1.TryGetValue(out double _), Is.False);
+		Assert.That(u1.TryGetValue(out short _), Is.False);
+		Assert.That(u1.TryGetValue(out TestDummy _), Is.False);
+		Assert.That(u1.TryGetValue(out Test? _), Is.True);
+
+		GenericUnion<int, TestDummy, ITest2, char> u2 = (ITest2)new Test(); // Matches ITest1 and ITest2, since T3 (ITest2) is constrained to reference types.
+
+		Assert.That(u2.TryGetValue(out ITest1? _), Is.True);
+		Assert.That(u2.TryGetValue(out ITest2? _), Is.True);
+		Assert.That(u2.TryGetValue(out int _), Is.False);
+		Assert.That(u2.TryGetValue(out double _), Is.False);
+		Assert.That(u2.TryGetValue(out short _), Is.False);
+		Assert.That(u2.TryGetValue(out TestDummy _), Is.False);
+		Assert.That(u2.TryGetValue(out char _), Is.False);
+
+		GenericUnion<int, TestDummy, Test, ITest2> u3 = new Test(); // Matches Test and ITest1. ITest2 is the unconstrained generic type, so it has its own tag identifier.
+
+		Assert.That(u3.TryGetValue(out ITest1? _), Is.True);
+		Assert.That(u3.TryGetValue(out ITest2? _), Is.False);
+		Assert.That(u3.TryGetValue(out int _), Is.False);
+		Assert.That(u3.TryGetValue(out double _), Is.False);
+		Assert.That(u3.TryGetValue(out short _), Is.False);
+		Assert.That(u3.TryGetValue(out TestDummy _), Is.False);
+		Assert.That(u3.TryGetValue(out Test? _), Is.True);
+
+		GenericUnion<int, TestDummy, Test, ITest2> u4 = new TestDummy();
+
+		Assert.That(u4.TryGetValue(out ITest1? _), Is.False);
+		Assert.That(u4.TryGetValue(out ITest2? _), Is.False);
+		Assert.That(u4.TryGetValue(out int _), Is.False);
+		Assert.That(u4.TryGetValue(out double _), Is.False);
+		Assert.That(u4.TryGetValue(out short _), Is.False);
+		Assert.That(u4.TryGetValue(out TestDummy _), Is.True);
+		Assert.That(u4.TryGetValue(out Test? _), Is.False);
+	}
+
 	// Packs the int/byte/char/short/sbyte/ushort into a struct where all the fields live at the same memory
 	// Since they all live at the same memory, the size of the packed enclosing struct is the size of its largest type (int)
 	// Then there is an extra byte field for tracking which value is currently held by the union, which puts us to 5 bytes.
@@ -241,6 +285,12 @@ public partial class NonBoxingUnionTests
 
 	[NonBoxingUnion<double, int, short, TestDummy>]
 	private partial struct DoesNotPackNonPackableStructs;
+
+	[NonBoxingUnion<double, int, short, ITest1>]
+	private partial struct GenericUnion<T1, T2, T3, T4>
+		where T1 : unmanaged
+		where T2 : struct
+		where T3 : class;
 
 	private interface ITest1;
 	private interface ITest2;

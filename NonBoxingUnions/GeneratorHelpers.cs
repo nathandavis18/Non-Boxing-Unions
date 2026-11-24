@@ -39,7 +39,16 @@ internal static class GeneratorHelpers
 			$$"""
 			internal sealed class {{AttributeName}}(params global::System.Type[] _) : global::System.Attribute
 			{
-			    public bool {{DisableStructPacking}} { get; set; }
+			    /// <summary>
+			    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+			    /// Defaults to <see langword="false"/>.
+			    /// </summary>
+			    /// <remarks>
+			    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+			    /// Consider benchmarking performance before disabling.
+			    /// </remarks>
+			    [global::System.ComponentModel.DefaultValue(false)]
+			    public bool {{DisableStructPacking}} { get; init; } = false;
 			}
 			""");
 			
@@ -62,7 +71,16 @@ internal static class GeneratorHelpers
 				$$"""
 				internal sealed class {{AttributeName}}<{{typeParams}}> : global::System.Attribute
 				{
-				    public bool {{DisableStructPacking}} { get; set; }
+				    /// <summary>
+				    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
+				    /// Defaults to <see langword="false"/>.
+				    /// </summary>
+				    /// <remarks>
+				    /// Disabling may improve speed for small unions at the cost of an increase in memory usage.
+				    /// Consider benchmarking performance before disabling.
+				    /// </remarks>
+				    [global::System.ComponentModel.DefaultValue(false)]
+				    public bool {{DisableStructPacking}} { get; init; } = false;
 				}
 				""");
 		}
@@ -135,6 +153,15 @@ internal static class GeneratorHelpers
 
 	private static FieldType GetFieldType(ITypeSymbol symbol, bool disableStructPacking)
 	{
+		if (symbol is ITypeParameterSymbol genericType)
+		{
+			if (genericType.HasReferenceTypeConstraint)
+				return FieldType.ReferenceType;
+			if (genericType.HasValueTypeConstraint)
+				return FieldType.NonPackedStruct;
+			return FieldType.GenericType;
+		}
+
 		if (!symbol.IsValueType)
 			return FieldType.ReferenceType;
 		if (disableStructPacking)
