@@ -12,7 +12,7 @@ namespace NonBoxingUnions.CodeFixProviders;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MissingPartialKeywordProvider))]
 public sealed class MissingPartialKeywordProvider : CodeFixProvider
 {
-	public override ImmutableArray<string> FixableDiagnosticIds => [NonBoxingUnionDiagnostics.AllEnclosingTypesMustBePartialID];
+	public override ImmutableArray<string> FixableDiagnosticIds => [NonBoxingUnionDiagnostics.UnionMustBePartialRule.Id];
 
 	public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 

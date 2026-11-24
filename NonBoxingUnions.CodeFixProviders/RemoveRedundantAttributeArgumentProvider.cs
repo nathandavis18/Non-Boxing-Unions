@@ -11,7 +11,7 @@ namespace NonBoxingUnions.CodeFixProviders;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(RemoveRedundantAttributeArgumentProvider))]
 internal sealed class RemoveRedundantAttributeArgumentProvider : CodeFixProvider
 {
-	public override ImmutableArray<string> FixableDiagnosticIds => [NonBoxingUnionDiagnostics.RedundantDefaultID];
+	public override ImmutableArray<string> FixableDiagnosticIds => [NonBoxingUnionDiagnostics.RedundantDefaultRule.Id];
 
 	public override FixAllProvider? GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 

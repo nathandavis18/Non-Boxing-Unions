@@ -3,7 +3,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace NonBoxingUnions;
 
-internal readonly record struct ContainingType(string Name, bool IsValueType, bool IsRecord, int Arity);
+internal readonly record struct ContainingType(string Name, string FullName, bool IsValueType, bool IsRecord, int Arity, bool IsPartial, EquatableLocation Location);
 
 internal readonly record struct Parameter(string FullyQualifiedName, FieldType Type);
 
@@ -16,16 +16,17 @@ internal readonly record struct EquatableLocation(string FilePath, TextSpan Sour
 	public Location ToLocation() => Location.Create(FilePath, Source, Position);
 }
 
+internal readonly record struct DuplicateType(string Name, EquatableLocation Location);
+
 internal readonly record struct TypeModel(
 	string Name,
 	string? Namespace,
 	string FullName,
 	EquatableArray<ContainingType> ContainingTypes,
-	EquatableArray<string> DuplicateTypes,
+	EquatableArray<DuplicateType> DuplicateTypes,
 	EquatableLocation Location,
 	EquatableArray<Parameter> Parameters,
-	bool IsPartial,
-	EquatableArray<string> NonPartialEnclosingTypes);
+	bool IsPartial);
 
 internal enum FieldType
 {

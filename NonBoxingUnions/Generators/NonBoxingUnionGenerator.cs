@@ -54,7 +54,7 @@ internal sealed class NonBoxingUnionGenerator : IIncrementalGenerator
 				string parentKind = type.IsRecord ? type.IsValueType ? "record struct" : "record"
 					: type.IsValueType ? "struct" : "class";
 
-				cb.AppendLine($"partial {parentKind} {type.Name}");
+				cb.AppendLine($"partial {parentKind} {type.FullName}");
 				cb.AppendLine("{");
 				cb.Indent();
 			}
@@ -113,14 +113,11 @@ internal sealed class NonBoxingUnionGenerator : IIncrementalGenerator
 
 		if (source.DuplicateTypes.Count > 0)
 		{
-			foreach (string duplicate in source.DuplicateTypes)
-			{
-				spc.ReportDiagnostic(Diagnostic.Create(
-					NonBoxingUnionDiagnostics.DuplicateUnionTypeRule,
-					source.Location.ToLocation(),
-					source.Name,
-					duplicate));
-			}
+			spc.ReportDiagnostic(Diagnostic.Create(
+				NonBoxingUnionDiagnostics.DuplicateUnionTypeRule,
+				source.Location.ToLocation(),
+				source.DuplicateTypes.Select(t => t.Location.ToLocation()),
+				source.Name));
 
 			result = true;
 		}
@@ -135,13 +132,14 @@ internal sealed class NonBoxingUnionGenerator : IIncrementalGenerator
 			result = true;
 		}
 
-		if (source.NonPartialEnclosingTypes.Count > 0)
+		if (source.ContainingTypes.Any(t => !t.IsPartial))
 		{
 			spc.ReportDiagnostic(Diagnostic.Create(
 				NonBoxingUnionDiagnostics.AllEnclosingTypesMustBePartialRule,
 				source.Location.ToLocation(),
+				source.ContainingTypes.Where(t => !t.IsPartial).Select(t => t.Location.ToLocation()),
 				source.Name,
-				string.Join(", ", source.NonPartialEnclosingTypes)));
+				string.Join(",", source.ContainingTypes.Where(t => !t.IsPartial).Select(t => t.Name))));
 
 			result = true;
 		}

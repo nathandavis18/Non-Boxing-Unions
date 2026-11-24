@@ -96,16 +96,15 @@ internal static class GeneratorHelpers
 			.. typeSymbol.TypeArguments
 		];
 		HashSet<ITypeSymbol> seen = new(SymbolEqualityComparer.Default);
-		List<string> duplicateTypes = [];
+		List<DuplicateType> duplicateTypes = [];
 
 		foreach (ITypeSymbol type in types)
 		{
 			if (!seen.Add(type))
-				duplicateTypes.Add(type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
+				duplicateTypes.Add(new DuplicateType(
+					type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat), 
+					new EquatableLocation(type.Locations.FirstOrDefault() ?? Location.None)));
 		}
-
-		// Grab the location of the attribute (or struct identifier) to underline in the IDE
-		Location location = typeSymbol.Locations.FirstOrDefault() ?? Location.None;
 
 		string? typeNamespace = typeSymbol.ContainingNamespace.IsGlobalNamespace
 			? null
@@ -113,13 +112,17 @@ internal static class GeneratorHelpers
 
 		Stack<ContainingType> containingTypes = new();
 		INamedTypeSymbol? current = typeSymbol.ContainingType;
-		Stack<string> nonPartialEnclosingTypes = new();
 		while (current is not null)
 		{
-			if (!IsSymbolPartial(current))
-				nonPartialEnclosingTypes.Push($"'{current.Name}'");
+			containingTypes.Push(new ContainingType(
+				current.Name,
+				current.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat), 
+				current.IsValueType, 
+				current.IsRecord, 
+				current.Arity,
+				IsSymbolPartial(current),
+				new EquatableLocation(current.Locations.FirstOrDefault() ?? Location.None)));
 
-			containingTypes.Push(new ContainingType(current.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat), current.IsValueType, current.IsRecord, current.Arity));
 			current = current.ContainingType;
 		}
 
@@ -129,10 +132,9 @@ internal static class GeneratorHelpers
 			typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
 			containingTypes.ToEquatableArray(),
 			duplicateTypes.ToEquatableArray(),
-			new EquatableLocation(location),
+			new EquatableLocation(typeSymbol.Locations.FirstOrDefault() ?? Location.None),
 			types.Select(t => new Parameter(t.ToDisplayString(Format), GetFieldType(t, disableStructPacking))).ToEquatableArray(),
-			IsSymbolPartial(typeSymbol),
-			nonPartialEnclosingTypes.ToEquatableArray());
+			IsSymbolPartial(typeSymbol));
 	}
 
 	internal static string GetModelFullyQualifiedName(TypeModel source)
@@ -143,7 +145,7 @@ internal static class GeneratorHelpers
 			sb.Append($"{source.Namespace}.");
 
 		foreach (ContainingType type in source.ContainingTypes)
-			sb.Append($"{type.Name.Replace('<', '{').Replace('>', '}')}.");
+			sb.Append($"{type.FullName.Replace('<', '{').Replace('>', '}')}.");
 
 		sb.Append(source.FullName.Replace('<', '{').Replace('>', '}'));
 
