@@ -8,30 +8,6 @@
     <IsRoslynComponent>true</IsRoslynComponent>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-
-    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
-    <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <PackageId>NonBoxingUnions.Generator</PackageId>
-    <Version>2.0.0</Version>
-    <Authors>Nathan Davis</Authors>
-    <Description>A source generator for creating non-boxing unions</Description>
-    <Copyright>Copyright © 2026 Nathan Davis</Copyright>
-
-    <PackageTags>c#;union;net11</PackageTags>
-    <RepositoryUrl>https://github.com/nathandavis18/Non-Boxing-Unions</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageProjectUrl>https://github.com/nathandavis18/Non-Boxing-Unions</PackageProjectUrl>
-    <PackageReleaseNotes>
-      - Added new Error Codes when the NonBoxingUnion's struct or its enclosing types are not declared as partial.
-      - Performs struct packing, bringing the union's size down drastically for unions that declare lots of value types.
-      - Increased type limit to support up to 2,147,483,647 (`int.MaxValue`)
-    </PackageReleaseNotes>
-
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -40,21 +16,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\README.md" Pack="true" PackagePath="\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <InternalsVisibleTo Include="NonBoxingUnions.CodeFixProviders"/>
     <InternalsVisibleTo Include="NonBoxingUnions.Tests" />
   </ItemGroup>
-
-  <Target Name="_AddAnalyzersToOutput">
-    <Touch Files="$(IntermediateOutputPath)_._" AlwaysCreate="true" />
-
-    <ItemGroup>
-      <TfmSpecificPackageFile Include="$(OutputPath)\$(AssemblyName).dll" PackagePath="analyzers/dotnet/cs" />
-      <TfmSpecificPackageFile Include="$(IntermediateOutputPath)_._" PackagePath="lib/net11.0" />
-    </ItemGroup>
-  </Target>
 
 </Project>

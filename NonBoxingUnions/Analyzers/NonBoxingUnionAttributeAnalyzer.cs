@@ -13,6 +13,7 @@ internal sealed class NonBoxingUnionAttributeAnalyzer : DiagnosticAnalyzer
 	private static readonly SymbolDisplayFormat Format = new(
 		typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
 		genericsOptions: SymbolDisplayGenericsOptions.None);
+
 	public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [NonBoxingUnionDiagnostics.RedundantDefaultRule];
 
 	public override void Initialize(AnalysisContext context)
