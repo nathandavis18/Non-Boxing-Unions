@@ -3,6 +3,7 @@
     <File Path=".editorconfig" />
   </Folder>
   <Project Path="NonBoxingUnions.CodeFixProviders/NonBoxingUnions.CodeFixProviders.csproj" Id="bfb55798-5c00-4022-a250-8cc0e6b6dfbd" />
+  <Project Path="NonBoxingUnions.Package/NonBoxingUnions.Package.csproj" Id="faac0440-d0ac-4c10-9ecc-067f022e6fd0" />
   <Project Path="NonBoxingUnions.Tests/NonBoxingUnions.Tests.csproj" />
   <Project Path="NonBoxingUnions/NonBoxingUnions.csproj" />
 </Solution>

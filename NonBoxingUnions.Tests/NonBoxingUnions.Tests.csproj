@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\NonBoxingUnions\NonBoxingUnions.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="True" />
+    <ProjectReference Include="..\NonBoxingUnions.CodeFixProviders\NonBoxingUnions.CodeFixProviders.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="True" />
   </ItemGroup>
 
 </Project>
