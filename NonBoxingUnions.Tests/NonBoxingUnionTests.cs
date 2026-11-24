@@ -78,7 +78,7 @@ public partial class NonBoxingUnionTests
 		long bytesBefore = GC.GetAllocatedBytesForCurrentThread();
 
 		// Assign to double since all 3 types can be implicitly cast to double at compile time
-		double y = x switch 
+		double _ = x switch 
 		{
 			int i => i,
 			double d => d,

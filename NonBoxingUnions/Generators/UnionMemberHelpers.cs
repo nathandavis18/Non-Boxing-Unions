@@ -3,7 +3,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace NonBoxingUnions;
+namespace NonBoxingUnions.Generators;
 
 internal static class UnionMemberHelpers
 {

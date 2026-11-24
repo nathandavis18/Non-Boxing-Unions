@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace NonBoxingUnions;
+namespace NonBoxingUnions.Generators;
 
 internal static class GeneratorHelpers
 {
@@ -88,8 +88,13 @@ internal static class GeneratorHelpers
 		ctx.AddSource($"{AttributeName}.g.cs", SourceText.From(cb.ToString(), Encoding.UTF8));
 	}
 
-	internal static TypeModel GetTypeModelForUnion(IReadOnlyList<ITypeSymbol> types, INamedTypeSymbol typeSymbol, bool disableStructPacking)
+	internal static TypeModel GetTypeModelForUnion(AttributeData attribute, INamedTypeSymbol typeSymbol, bool disableStructPacking)
 	{
+		ITypeSymbol[] types =
+		[
+			.. GetTypesFromAttributeData(attribute),
+			.. typeSymbol.TypeArguments
+		];
 		HashSet<ITypeSymbol> seen = new(SymbolEqualityComparer.Default);
 		List<string> duplicateTypes = [];
 
@@ -143,6 +148,16 @@ internal static class GeneratorHelpers
 		sb.Append(source.FullName.Replace('<', '{').Replace('>', '}'));
 
 		return sb.ToString();
+	}
+
+	private static IEnumerable<ITypeSymbol> GetTypesFromAttributeData(AttributeData attributeData)
+	{
+		if (attributeData.ConstructorArguments.Length > 0)
+			return attributeData.ConstructorArguments[0].Values
+				.Select(c => c.Value as ITypeSymbol)
+				.Where(t => t is not null)!;
+
+		return attributeData.AttributeClass!.TypeArguments;
 	}
 
 	private static bool IsSymbolPartial(INamedTypeSymbol symbol) =>
