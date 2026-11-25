@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using NonBoxingUnions.Generators;
+using NonBoxingUnions.Shared;
 
 namespace NonBoxingUnions.Tests.GeneratorTests;
 

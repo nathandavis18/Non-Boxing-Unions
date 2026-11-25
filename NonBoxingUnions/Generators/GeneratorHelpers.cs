@@ -1,8 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
+using NonBoxingUnions.Shared;
 using System.Linq;
 using System.Text;
 
@@ -10,18 +8,11 @@ namespace NonBoxingUnions.Generators;
 
 internal static class GeneratorHelpers
 {
-	internal const string AttributeNamespace = "NonBoxingUnions";
-	internal const string AttributeName = "NonBoxingUnionAttribute";
-	internal const string DisableStructPacking = "DisableStructPacking";
-
-	private static readonly SymbolDisplayFormat Format =
-		SymbolDisplayFormat.FullyQualifiedFormat.WithGlobalNamespaceStyle(SymbolDisplayGlobalNamespaceStyle.Omitted);
-
 	internal static void RegisterPostInitializationOutput(IncrementalGeneratorPostInitializationContext ctx)
 	{
 		ctx.AddEmbeddedAttributeDefinition();
 
-		CodeBuilder cb = new(AttributeNamespace);
+		CodeBuilder cb = new(Constants.AttributeNamespace);
 
 		cb.AppendLine("""
 					  /// <summary>
@@ -37,7 +28,7 @@ internal static class GeneratorHelpers
 		cb.AppendAttributeUsageAttribute();
 		cb.AppendLine(
 			$$"""
-			internal sealed class {{AttributeName}}(params global::System.Type[] _) : global::System.Attribute
+			internal sealed class {{Constants.AttributeName}}(params global::System.Type[] _) : global::System.Attribute
 			{
 			    /// <summary>
 			    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
@@ -48,7 +39,7 @@ internal static class GeneratorHelpers
 			    /// Consider benchmarking performance before disabling.
 			    /// </remarks>
 			    [global::System.ComponentModel.DefaultValue(false)]
-			    public bool {{DisableStructPacking}} { get; init; } = false;
+			    public bool {{Constants.DisableStructPacking}} { get; init; } = false;
 			}
 			""");
 			
@@ -69,7 +60,7 @@ internal static class GeneratorHelpers
 			cb.AppendAttributeUsageAttribute();
 			cb.AppendLine(
 				$$"""
-				internal sealed class {{AttributeName}}<{{typeParams}}> : global::System.Attribute
+				internal sealed class {{Constants.AttributeName}}<{{typeParams}}> : global::System.Attribute
 				{
 				    /// <summary>
 				    /// When <see langword="true"/>, prevents this union from packing unmanaged types.
@@ -80,61 +71,12 @@ internal static class GeneratorHelpers
 				    /// Consider benchmarking performance before disabling.
 				    /// </remarks>
 				    [global::System.ComponentModel.DefaultValue(false)]
-				    public bool {{DisableStructPacking}} { get; init; } = false;
+				    public bool {{Constants.DisableStructPacking}} { get; init; } = false;
 				}
 				""");
 		}
 
-		ctx.AddSource($"{AttributeName}.g.cs", SourceText.From(cb.ToString(), Encoding.UTF8));
-	}
-
-	internal static TypeModel GetTypeModelForUnion(AttributeData attribute, INamedTypeSymbol typeSymbol, bool disableStructPacking)
-	{
-		(ITypeSymbol, Location)[] types =
-		[
-			.. GetTypesFromAttributeData(attribute),
-			.. typeSymbol.TypeArguments.Select(t => (t, t.Locations.FirstOrDefault() ?? Location.None))
-		];
-		HashSet<ITypeSymbol> seen = new(SymbolEqualityComparer.Default);
-		List<DuplicateType> duplicateTypes = [];
-
-		foreach ((ITypeSymbol type, Location location) in types)
-		{
-			if (!seen.Add(type))
-				duplicateTypes.Add(new DuplicateType(
-					type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat), 
-					new EquatableLocation(location)));
-		}
-
-		string? typeNamespace = typeSymbol.ContainingNamespace.IsGlobalNamespace
-			? null
-			: typeSymbol.ContainingNamespace.ToDisplayString();
-
-		Stack<ContainingType> containingTypes = new();
-		INamedTypeSymbol? current = typeSymbol.ContainingType;
-		while (current is not null)
-		{
-			containingTypes.Push(new ContainingType(
-				current.Name,
-				current.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat), 
-				current.IsValueType, 
-				current.IsRecord, 
-				current.Arity,
-				IsSymbolPartial(current),
-				new EquatableLocation(current.Locations.FirstOrDefault() ?? Location.None)));
-
-			current = current.ContainingType;
-		}
-
-		return new TypeModel(
-			typeSymbol.Name,
-			typeNamespace,
-			typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
-			containingTypes.ToEquatableArray(),
-			duplicateTypes.ToEquatableArray(),
-			new EquatableLocation(typeSymbol.Locations.FirstOrDefault() ?? Location.None),
-			types.Select(t => new Parameter(t.Item1.ToDisplayString(Format), GetFieldType(t.Item1, disableStructPacking))).ToEquatableArray(),
-			IsSymbolPartial(typeSymbol));
+		ctx.AddSource($"{Constants.AttributeName}.g.cs", SourceText.From(cb.ToString(), Encoding.UTF8));
 	}
 
 	internal static string GetModelFullyQualifiedName(TypeModel source)
@@ -150,43 +92,5 @@ internal static class GeneratorHelpers
 		sb.Append(source.FullName.Replace('<', '{').Replace('>', '}'));
 
 		return sb.ToString();
-	}
-
-	private static IEnumerable<(ITypeSymbol, Location)> GetTypesFromAttributeData(AttributeData attributeData)
-	{
-		AttributeSyntax attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference!.GetSyntax();
-		if (attributeData.ConstructorArguments.Length > 0)
-		{
-			return attributeData.ConstructorArguments[0].Values.Where(kvp => kvp.Value is ITypeSymbol)
-				.Zip(attributeSyntax.ArgumentList!.Arguments.Where(a => a.Expression is TypeOfExpressionSyntax), (ctor, @typeof) => ((ITypeSymbol)ctor.Value!, @typeof.GetLocation()));
-		}
-
-		GenericNameSyntax genericName = attributeSyntax.Name.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First();
-		return attributeData.AttributeClass!.TypeArguments
-			.Zip(genericName.TypeArgumentList.Arguments, (argument, generic) => (argument, generic.GetLocation()));
-	}
-
-	private static bool IsSymbolPartial(INamedTypeSymbol symbol) =>
-		symbol.DeclaringSyntaxReferences
-			.Select(s => s.GetSyntax())
-			.OfType<BaseTypeDeclarationSyntax>()
-			.Any(s => s.Modifiers.Any(SyntaxKind.PartialKeyword));
-
-	private static FieldType GetFieldType(ITypeSymbol symbol, bool disableStructPacking)
-	{
-		if (symbol is ITypeParameterSymbol genericType)
-		{
-			if (genericType.HasReferenceTypeConstraint)
-				return FieldType.ReferenceType;
-			if (genericType.HasValueTypeConstraint)
-				return FieldType.NonPackedStruct;
-			return FieldType.GenericType;
-		}
-
-		if (!symbol.IsValueType)
-			return FieldType.ReferenceType;
-		if (disableStructPacking)
-			return FieldType.NonPackedStruct;
-		return symbol.IsUnmanagedType ? FieldType.PackedStruct : FieldType.NonPackedStruct;
 	}
 }

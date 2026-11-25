@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
-namespace NonBoxingUnions;
+namespace NonBoxingUnions.Shared;
 
 internal readonly record struct ContainingType(string Name, string FullName, bool IsValueType, bool IsRecord, int Arity, bool IsPartial, EquatableLocation Location);
 

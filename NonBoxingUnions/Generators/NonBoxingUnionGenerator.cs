@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
+using NonBoxingUnions.Shared;
 using System.Linq;
 using System.Text;
 
@@ -14,29 +15,29 @@ internal sealed class NonBoxingUnionGenerator : IIncrementalGenerator
 		context.RegisterPostInitializationOutput(GeneratorHelpers.RegisterPostInitializationOutput);
 
 		RegisterSourceOutput(context, context.SyntaxProvider.ForAttributeWithMetadataName(
-				$"{GeneratorHelpers.AttributeNamespace}.{GeneratorHelpers.AttributeName}",
+				$"{Constants.AttributeNamespace}.{Constants.AttributeName}",
 				predicate: static (node, _) => node is StructDeclarationSyntax,
 				transform: static (ctx, _) =>
 				{
 					AttributeData attribute = ctx.Attributes[0];
 					INamedTypeSymbol typeSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
 
-					bool disableStructPacking = (bool?)attribute.NamedArguments.FirstOrDefault(n => n.Key == GeneratorHelpers.DisableStructPacking).Value.Value ?? false;
-					return GeneratorHelpers.GetTypeModelForUnion(attribute, typeSymbol, disableStructPacking);
+					bool disableStructPacking = (bool?)attribute.NamedArguments.FirstOrDefault(n => n.Key == Constants.DisableStructPacking).Value.Value ?? false;
+					return Helpers.GetTypeModelForUnion(attribute, typeSymbol, disableStructPacking);
 				}));
 
 		for (int generic = 1; generic <= 16; ++generic)
 		{
 			RegisterSourceOutput(context, context.SyntaxProvider.ForAttributeWithMetadataName(
-				$"{GeneratorHelpers.AttributeNamespace}.{GeneratorHelpers.AttributeName}`{generic}",
+				$"{Constants.AttributeNamespace}.{Constants.AttributeName}`{generic}",
 				predicate: static (node, _) => node is StructDeclarationSyntax,
 				transform: static (ctx, _) =>
 				{
 					AttributeData attribute = ctx.Attributes[0];
 					INamedTypeSymbol typeSymbol = (INamedTypeSymbol)ctx.TargetSymbol;
 
-					bool disableStructPacking = (bool?)attribute.NamedArguments.FirstOrDefault(n => n.Key == GeneratorHelpers.DisableStructPacking).Value.Value ?? false;
-					return GeneratorHelpers.GetTypeModelForUnion(attribute, typeSymbol, disableStructPacking);
+					bool disableStructPacking = (bool?)attribute.NamedArguments.FirstOrDefault(n => n.Key == Constants.DisableStructPacking).Value.Value ?? false;
+					return Helpers.GetTypeModelForUnion(attribute, typeSymbol, disableStructPacking);
 				}));
 		}
 	}
@@ -45,7 +46,7 @@ internal sealed class NonBoxingUnionGenerator : IIncrementalGenerator
 	{
 		context.RegisterSourceOutput(declarations, static (spc, source) =>
 		{
-			if (OutputErrorsIfExist(spc, source))
+			if (!ModelVerification.IsModelValid(source, out _))
 				return;
 
 			CodeBuilder cb = new(source.Namespace);
@@ -96,54 +97,4 @@ internal sealed class NonBoxingUnionGenerator : IIncrementalGenerator
 
 	private static string GetFileHintName(TypeModel source) =>
 		$"{GeneratorHelpers.GetModelFullyQualifiedName(source)}.g.cs";
-
-	private static bool OutputErrorsIfExist(SourceProductionContext spc, TypeModel source)
-	{
-		bool result = false;
-
-		if (source.Parameters.IsDefaultOrEmpty)
-		{
-			spc.ReportDiagnostic(Diagnostic.Create(
-				NonBoxingUnionDiagnostics.UnionMustDeclareTypeRule,
-				source.Location.ToLocation(),
-				source.Name));
-
-			result = true;
-		}
-
-		if (source.DuplicateTypes.Count > 0)
-		{
-			spc.ReportDiagnostic(Diagnostic.Create(
-				NonBoxingUnionDiagnostics.DuplicateUnionTypeRule,
-				source.Location.ToLocation(),
-				source.DuplicateTypes.Select(t => t.Location.ToLocation()),
-				source.Name));
-
-			result = true;
-		}
-
-		if (!source.IsPartial)
-		{
-			spc.ReportDiagnostic(Diagnostic.Create(
-				NonBoxingUnionDiagnostics.UnionMustBePartialRule,
-				source.Location.ToLocation(),
-				source.Name));
-
-			result = true;
-		}
-
-		if (source.ContainingTypes.Any(t => !t.IsPartial))
-		{
-			spc.ReportDiagnostic(Diagnostic.Create(
-				NonBoxingUnionDiagnostics.AllEnclosingTypesMustBePartialRule,
-				source.Location.ToLocation(),
-				source.ContainingTypes.Where(t => !t.IsPartial).Select(t => t.Location.ToLocation()),
-				source.Name,
-				string.Join(",", source.ContainingTypes.Where(t => !t.IsPartial).Select(t => t.Name))));
-
-			result = true;
-		}
-
-		return result;
-	}
 }

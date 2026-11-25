@@ -1,4 +1,4 @@
-﻿namespace NonBoxingUnions;
+﻿namespace NonBoxingUnions.Generators;
 
 internal static class CodeBuilderExtensions
 {

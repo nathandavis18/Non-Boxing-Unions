@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="NonBoxingUnions.CodeFixProviders"/>
+    <InternalsVisibleTo Include="NonBoxingUnions.CodeFixProviders" />
     <InternalsVisibleTo Include="NonBoxingUnions.Tests" />
   </ItemGroup>
 

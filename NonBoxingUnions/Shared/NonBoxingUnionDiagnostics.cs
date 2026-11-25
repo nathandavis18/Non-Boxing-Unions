@@ -1,6 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
-namespace NonBoxingUnions;
+namespace NonBoxingUnions.Shared;
 
 internal static class NonBoxingUnionDiagnostics
 {

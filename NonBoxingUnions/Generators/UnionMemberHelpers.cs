@@ -1,4 +1,5 @@
 ﻿using Microsoft.CodeAnalysis.CSharp;
+using NonBoxingUnions.Shared;
 using System;
 using System.Collections.Immutable;
 using System.Linq;

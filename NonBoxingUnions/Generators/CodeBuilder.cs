@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace NonBoxingUnions;
+namespace NonBoxingUnions.Generators;
 
 internal sealed class CodeBuilder
 {
