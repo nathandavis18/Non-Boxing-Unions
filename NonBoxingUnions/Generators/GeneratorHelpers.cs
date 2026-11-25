@@ -90,20 +90,20 @@ internal static class GeneratorHelpers
 
 	internal static TypeModel GetTypeModelForUnion(AttributeData attribute, INamedTypeSymbol typeSymbol, bool disableStructPacking)
 	{
-		ITypeSymbol[] types =
+		(ITypeSymbol, Location)[] types =
 		[
 			.. GetTypesFromAttributeData(attribute),
-			.. typeSymbol.TypeArguments
+			.. typeSymbol.TypeArguments.Select(t => (t, t.Locations.FirstOrDefault() ?? Location.None))
 		];
 		HashSet<ITypeSymbol> seen = new(SymbolEqualityComparer.Default);
 		List<DuplicateType> duplicateTypes = [];
 
-		foreach (ITypeSymbol type in types)
+		foreach ((ITypeSymbol type, Location location) in types)
 		{
 			if (!seen.Add(type))
 				duplicateTypes.Add(new DuplicateType(
 					type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat), 
-					new EquatableLocation(type.Locations.FirstOrDefault() ?? Location.None)));
+					new EquatableLocation(location)));
 		}
 
 		string? typeNamespace = typeSymbol.ContainingNamespace.IsGlobalNamespace
@@ -133,7 +133,7 @@ internal static class GeneratorHelpers
 			containingTypes.ToEquatableArray(),
 			duplicateTypes.ToEquatableArray(),
 			new EquatableLocation(typeSymbol.Locations.FirstOrDefault() ?? Location.None),
-			types.Select(t => new Parameter(t.ToDisplayString(Format), GetFieldType(t, disableStructPacking))).ToEquatableArray(),
+			types.Select(t => new Parameter(t.Item1.ToDisplayString(Format), GetFieldType(t.Item1, disableStructPacking))).ToEquatableArray(),
 			IsSymbolPartial(typeSymbol));
 	}
 
@@ -152,14 +152,18 @@ internal static class GeneratorHelpers
 		return sb.ToString();
 	}
 
-	private static IEnumerable<ITypeSymbol> GetTypesFromAttributeData(AttributeData attributeData)
+	private static IEnumerable<(ITypeSymbol, Location)> GetTypesFromAttributeData(AttributeData attributeData)
 	{
+		AttributeSyntax attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference!.GetSyntax();
 		if (attributeData.ConstructorArguments.Length > 0)
-			return attributeData.ConstructorArguments[0].Values
-				.Select(c => c.Value as ITypeSymbol)
-				.Where(t => t is not null)!;
+		{
+			return attributeData.ConstructorArguments[0].Values.Where(kvp => kvp.Value is ITypeSymbol)
+				.Zip(attributeSyntax.ArgumentList!.Arguments.Where(a => a.Expression is TypeOfExpressionSyntax), (ctor, @typeof) => ((ITypeSymbol)ctor.Value!, @typeof.GetLocation()));
+		}
 
-		return attributeData.AttributeClass!.TypeArguments;
+		GenericNameSyntax genericName = attributeSyntax.Name.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First();
+		return attributeData.AttributeClass!.TypeArguments
+			.Zip(genericName.TypeArgumentList.Arguments, (argument, generic) => (argument, generic.GetLocation()));
 	}
 
 	private static bool IsSymbolPartial(INamedTypeSymbol symbol) =>
