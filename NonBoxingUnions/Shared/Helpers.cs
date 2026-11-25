@@ -65,8 +65,11 @@ internal static class Helpers
 		AttributeSyntax attributeSyntax = (AttributeSyntax)attributeData.ApplicationSyntaxReference!.GetSyntax();
 		if (attributeData.ConstructorArguments.Length > 0)
 		{
+			if (attributeSyntax.ArgumentList?.Arguments.Count is not > 0)
+				return [];
+
 			return attributeData.ConstructorArguments[0].Values.Where(kvp => kvp.Value is ITypeSymbol)
-				.Zip(attributeSyntax.ArgumentList!.Arguments.Where(a => a.Expression is TypeOfExpressionSyntax), (ctor, @typeof) => ((ITypeSymbol)ctor.Value!, @typeof.GetLocation()));
+				.Zip(attributeSyntax.ArgumentList.Arguments.Where(a => a.Expression is TypeOfExpressionSyntax), (ctor, @typeof) => ((ITypeSymbol)ctor.Value!, @typeof.GetLocation()));
 		}
 
 		GenericNameSyntax genericName = attributeSyntax.Name.DescendantNodesAndSelf().OfType<GenericNameSyntax>().First();
