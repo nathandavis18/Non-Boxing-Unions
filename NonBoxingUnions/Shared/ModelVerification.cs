@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace NonBoxingUnions.Shared;
 
-internal readonly record struct DiagnosticData(DiagnosticDescriptor Descriptor, Location SourceLocation, IEnumerable<Location>? AdditionalLocations = null, params string[] MessageFormatArguments);
+internal readonly record struct DiagnosticData(DiagnosticDescriptor Descriptor, IEnumerable<Location>? AdditionalLocations = null, params string[] MessageFormatArguments);
 
 internal static class ModelVerification
 {
@@ -16,7 +16,6 @@ internal static class ModelVerification
 		{
 			tmpDiagnostics.Add(new DiagnosticData(
 				NonBoxingUnionDiagnostics.UnionMustDeclareTypeRule,
-				source.Location.ToLocation(),
 				MessageFormatArguments: [source.Name]));
 		}
 
@@ -24,7 +23,6 @@ internal static class ModelVerification
 		{
 			tmpDiagnostics.Add(new DiagnosticData(
 				NonBoxingUnionDiagnostics.DuplicateUnionTypeRule,
-				source.Location.ToLocation(),
 				source.DuplicateTypes.Select(t => t.Location.ToLocation()),
 				source.Name));
 		}
@@ -33,7 +31,6 @@ internal static class ModelVerification
 		{
 			tmpDiagnostics.Add(new DiagnosticData(
 				NonBoxingUnionDiagnostics.UnionMustBePartialRule,
-				source.Location.ToLocation(),
 				MessageFormatArguments: [source.Name]));
 		}
 
@@ -41,7 +38,6 @@ internal static class ModelVerification
 		{
 			tmpDiagnostics.Add(new DiagnosticData(
 				NonBoxingUnionDiagnostics.AllEnclosingTypesMustBePartialRule,
-				source.Location.ToLocation(),
 				source.ContainingTypes.Where(t => !t.IsPartial).Select(t => t.Location.ToLocation()),
 				source.Name,
 				string.Join(",", source.ContainingTypes.Where(t => !t.IsPartial).Select(t => t.Name))));

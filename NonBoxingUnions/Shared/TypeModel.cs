@@ -24,7 +24,6 @@ internal readonly record struct TypeModel(
 	string FullName,
 	EquatableArray<ContainingType> ContainingTypes,
 	EquatableArray<DuplicateType> DuplicateTypes,
-	EquatableLocation Location,
 	EquatableArray<Parameter> Parameters,
 	bool IsPartial);
 

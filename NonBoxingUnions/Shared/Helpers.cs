@@ -55,7 +55,6 @@ internal static class Helpers
 			typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
 			containingTypes.ToEquatableArray(),
 			duplicateTypes.ToEquatableArray(),
-			new EquatableLocation(typeSymbol.DeclaringSyntaxReferences.First().GetSyntax().GetLocation()),
 			types.Select(t => new Parameter(t.Item1.ToDisplayString(Format), GetFieldType(t.Item1, disableStructPacking))).ToEquatableArray(),
 			IsSymbolPartial(typeSymbol));
 	}
