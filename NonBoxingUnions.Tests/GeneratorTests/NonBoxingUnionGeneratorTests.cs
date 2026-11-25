@@ -1,20 +1,23 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Testing;
+using Microsoft.CodeAnalysis.Testing;
+using Microsoft.CodeAnalysis.Text;
+using NonBoxingUnions.Analyzers;
 using NonBoxingUnions.Generators;
-using NonBoxingUnions.Shared;
+using NUnit.Framework;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace NonBoxingUnions.Tests.GeneratorTests;
 
 [TestFixture]
 internal class NonBoxingUnionGeneratorTests
 {
-	[OneTimeSetUp]
-	public void Initialize() => VerifySourceGenerators.Initialize();
-
 	[Test]
-	public Task GeneratesExpectedCode()
+	public async Task GeneratesExpectedCode()
 	{
-		string source =
+		const string source =
 			"""
 			namespace NonBoxingUnions.Tests.GeneratorTests;
 
@@ -31,30 +34,14 @@ internal class NonBoxingUnionGeneratorTests
 			partial struct MyUnion;
 			""";
 
-		var references = AppDomain.CurrentDomain.GetAssemblies()
-			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
-			.Select(a => MetadataReference.CreateFromFile(a.Location));
 
-		CSharpCompilation compilation = CSharpCompilation.Create(
-			assemblyName: "NonBoxingUnions.Tests",
-			references: references,
-			syntaxTrees: [CSharpSyntaxTree.ParseText(source)],
-			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-		NonBoxingUnionGenerator generator = new();
-		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
-		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
-
-		Assert.That(diagnostics, Is.Empty);
-		Assert.That(outputCompilation.GetDiagnostics(), Is.Empty);
-
-		return Verify(driver);
+		await VerifyGenerator(source, "MyUnion");
 	}
 
 	[Test]
-	public Task GenericTypedUnionGeneratesCorrectly()
+	public async Task GenericTypedUnionGeneratesCorrectly()
 	{
-		string source =
+		const string source =
 			"""
 			namespace NonBoxingUnions.Tests.GeneratorTests;
 
@@ -65,30 +52,13 @@ internal class NonBoxingUnionGeneratorTests
 				where T3 : unmanaged;
 			""";
 
-		var references = AppDomain.CurrentDomain.GetAssemblies()
-			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
-			.Select(a => MetadataReference.CreateFromFile(a.Location));
-
-		CSharpCompilation compilation = CSharpCompilation.Create(
-			assemblyName: "NonBoxingUnions.Tests",
-			references: references,
-			syntaxTrees: [CSharpSyntaxTree.ParseText(source)],
-			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-		NonBoxingUnionGenerator generator = new();
-		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
-		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
-
-		Assert.That(diagnostics, Is.Empty);
-		Assert.That(outputCompilation.GetDiagnostics(), Is.Empty);
-
-		return Verify(driver);
+		await VerifyGenerator(source, "MyUnion{T1, T2, T3, T4}");
 	}
 
 	[Test]
-	public Task DisableStructPackingMakesAllValueTypesGetTheirOwnField()
+	public async Task DisableStructPackingMakesAllValueTypesGetTheirOwnField()
 	{
-		string source =
+		const string source =
 			"""
 			namespace NonBoxingUnions.Tests.GeneratorTests;
 
@@ -96,41 +66,13 @@ internal class NonBoxingUnionGeneratorTests
 			partial struct MyUnion;
 			""";
 
-		var references = AppDomain.CurrentDomain.GetAssemblies()
-			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
-			.Select(a => MetadataReference.CreateFromFile(a.Location));
-
-		CSharpCompilation compilation = CSharpCompilation.Create(
-			assemblyName: "NonBoxingUnions.Tests",
-			references: references,
-			syntaxTrees: [CSharpSyntaxTree.ParseText(source)],
-			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-		NonBoxingUnionGenerator generator = new();
-		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
-		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
-
-		Assert.That(diagnostics, Is.Empty);
-		Assert.That(outputCompilation.GetDiagnostics(), Is.Empty);
-
-		return Verify(driver);
+		await VerifyGenerator(source, "MyUnion");
 	}
 
 	[Test]
-	public Task GeneratorUsesLargerTypeWhenUnionHasMoreThan255Types()
+	public async Task GeneratorUsesLargerTypeWhenUnionHasMoreThan255Types()
 	{
-		var references = AppDomain.CurrentDomain.GetAssemblies()
-			.Where(a => !a.IsDynamic && !string.IsNullOrWhiteSpace(a.Location))
-			.Select(a => MetadataReference.CreateFromFile(a.Location));
-
-		CSharpCompilation compilation = CSharpCompilation.Create(
-			assemblyName: "NonBoxingUnions.Tests",
-			references: references,
-			options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-		for (int i = 1; i <= 256; ++i)
-			compilation = compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText($"public struct Dummy{i};"));
-
+		string dummyStructs = string.Join("\n", Enumerable.Range(1, 256).Select(i => $"public struct Dummy{i};"));
 		string typeParams = string.Join(", ", Enumerable.Range(1, 256).Select(i => $"typeof(Dummy{i})"));
 		string source =
 			$"""
@@ -138,24 +80,17 @@ internal class NonBoxingUnionGeneratorTests
 
 			[NonBoxingUnion({typeParams})]
 			public partial struct MyUnion;
+			
+			{dummyStructs}
 			""";
 
-		compilation = compilation.AddSyntaxTrees(CSharpSyntaxTree.ParseText(source));
-
-		NonBoxingUnionGenerator generator = new();
-		GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
-		driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
-
-		Assert.That(diagnostics, Is.Empty);
-		Assert.That(outputCompilation.GetDiagnostics(), Is.Empty);
-
-		return Verify(driver);
+		await VerifyGenerator(source, "MyUnion");
 	}
 
 	[Test]
 	public void GeneratorPerformsIncrementalCaching()
 	{
-		string source =
+		const string source =
 			"""
 			namespace NonBoxingUnions.Tests.GeneratorTests;
 
@@ -185,13 +120,46 @@ internal class NonBoxingUnionGeneratorTests
 
 		GeneratorDriverRunResult results2 = driver.GetRunResult();
 
-		var result = results2.Results.Single();
-		var trackedSteps = result.TrackedSteps;
-
-		var outputSteps = result.TrackedOutputSteps.SelectMany(kvp => kvp.Value).SelectMany(step => step.Outputs);
+		GeneratorRunResult result = results2.Results.Single();
+		IncrementalStepRunReason[] outputSteps = result.TrackedOutputSteps.SelectMany(kvp => kvp.Value).SelectMany(step => step.Outputs.Select(o => o.Reason)).ToArray();
 
 		Assert.That(outputSteps, Is.Not.Empty);
-		foreach (var step in outputSteps)
-			Assert.That(step.Reason, Is.EqualTo(IncrementalStepRunReason.Cached).Or.EqualTo(IncrementalStepRunReason.Unchanged));
+		foreach (IncrementalStepRunReason step in outputSteps)
+			Assert.That(step, Is.EqualTo(IncrementalStepRunReason.Cached).Or.EqualTo(IncrementalStepRunReason.Unchanged));
+	}
+
+	private static async Task VerifyGenerator(string testCode, string expectedHintName, [CallerMemberName] string fileExpectedOutput = "")
+	{
+
+		string embeddedAttributeText = (await File.ReadAllTextAsync("GeneratorTests/VerifiedOutput/EmbeddedAttribute.verified.cs")).ReplaceLineEndings("\r\n");
+		string nonBoxingUnionAttributeText = await File.ReadAllTextAsync("GeneratorTests/VerifiedOutput/NonBoxingUnionAttribute.verified.cs");
+		string expectedOutput = await File.ReadAllTextAsync($"GeneratorTests/VerifiedOutput/{fileExpectedOutput}.verified.cs");
+
+		NonBoxingUnionGeneratorTest test = new()
+		{
+			TestState =
+			{
+				Sources = { testCode },
+				GeneratedSources =
+				{
+					(typeof(NonBoxingUnionGenerator), "Microsoft.CodeAnalysis.EmbeddedAttribute.cs", SourceText.From(embeddedAttributeText, Encoding.UTF8)),
+					(typeof(NonBoxingUnionGenerator), "NonBoxingUnionAttribute.g.cs", SourceText.From(nonBoxingUnionAttributeText, Encoding.UTF8)),
+					(typeof(NonBoxingUnionGenerator), $"NonBoxingUnions.Tests.GeneratorTests.{expectedHintName}.g.cs", SourceText.From(expectedOutput, Encoding.UTF8)),
+				}
+			},
+			ReferenceAssemblies = Net110,
+		};
+
+		await test.RunAsync();
+	}
+
+	private static readonly ReferenceAssemblies Net110 = new(
+		"net11.0",
+		new PackageIdentity("Microsoft.NETCore.App.Ref", "11.0.0"),
+		Path.Combine("ref", "net11.0"));
+
+	private sealed class NonBoxingUnionGeneratorTest : CSharpSourceGeneratorTest<NonBoxingUnionAttributeAnalyzer, DefaultVerifier>
+	{
+		protected override IEnumerable<Type> GetSourceGenerators() => [typeof(NonBoxingUnionGenerator)];
 	}
 }

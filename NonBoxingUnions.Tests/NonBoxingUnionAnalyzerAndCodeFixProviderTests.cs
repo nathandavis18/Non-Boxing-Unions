@@ -5,6 +5,7 @@ using NonBoxingUnions.Analyzers;
 using NonBoxingUnions.CodeFixProviders;
 using NonBoxingUnions.Generators;
 using NonBoxingUnions.Shared;
+using NUnit.Framework;
 
 namespace NonBoxingUnions.Tests;
 

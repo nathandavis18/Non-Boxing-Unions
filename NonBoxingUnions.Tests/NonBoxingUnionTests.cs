@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using NUnit.Framework;
+using System.Runtime.CompilerServices;
 
 namespace NonBoxingUnions.Tests;
 
