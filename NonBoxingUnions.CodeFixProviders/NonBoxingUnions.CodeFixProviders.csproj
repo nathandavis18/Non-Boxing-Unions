@@ -18,4 +18,8 @@
     <ProjectReference Include="..\NonBoxingUnions\NonBoxingUnions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="NonBoxingUnions.Tests" />
+  </ItemGroup>
+
 </Project>

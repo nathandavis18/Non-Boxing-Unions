@@ -7,8 +7,10 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
+namespace NonBoxingUnions.CodeFixProviders;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(DuplicateUnionTypeProvider))]
-public sealed class DuplicateUnionTypeProvider : CodeFixProvider
+internal sealed class DuplicateUnionTypeProvider : CodeFixProvider
 {
 	public override ImmutableArray<string> FixableDiagnosticIds => [NonBoxingUnionDiagnostics.DuplicateUnionTypeRule.Id];
 

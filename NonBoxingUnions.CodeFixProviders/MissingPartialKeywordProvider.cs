@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace NonBoxingUnions.CodeFixProviders;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(MissingPartialKeywordProvider))]
-public sealed class MissingPartialKeywordProvider : CodeFixProvider
+internal sealed class MissingPartialKeywordProvider : CodeFixProvider
 {
 	public override ImmutableArray<string> FixableDiagnosticIds => [NonBoxingUnionDiagnostics.UnionMustBePartialRule.Id];
 
