@@ -19,7 +19,7 @@ internal static class ModelVerification
 				MessageFormatArguments: [source.Name]));
 		}
 
-		if (source.DuplicateTypes.Count > 0)
+		if (source.DuplicateTypes.Length > 0)
 		{
 			tmpDiagnostics.Add(new DiagnosticData(
 				NonBoxingUnionDiagnostics.DuplicateUnionTypeRule,

@@ -42,7 +42,7 @@ internal sealed class MissingPartialKeywordProvider : CodeFixProvider
 		Document document,
 		SyntaxNode root,
 		StructDeclarationSyntax structDeclaration,
-		CancellationToken cancellationToken)
+		CancellationToken _)
 	{
 		if (structDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
 			return Task.FromResult(document);

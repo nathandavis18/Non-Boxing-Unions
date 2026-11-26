@@ -45,12 +45,12 @@ internal class AllEnclosingTypesMustBePartialProvider : CodeFixProvider
 		Document document,
 		SyntaxNode root,
 		IReadOnlyList<SyntaxNode> nodes,
-		CancellationToken cancellationToken)
+		CancellationToken _)
 	{
 		SyntaxToken partialToken = SyntaxFactory.Token(SyntaxKind.PartialKeyword);
 		root = root.ReplaceNodes(
 			nodes.Distinct(),
-			(originalNode, newNode) =>
+			(_, newNode) =>
 			{
 				if (newNode is TypeDeclarationSyntax typeDeclaration && !typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
 					return typeDeclaration.AddModifiers(partialToken);

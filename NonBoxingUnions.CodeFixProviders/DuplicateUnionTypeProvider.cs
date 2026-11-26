@@ -42,10 +42,9 @@ internal sealed class DuplicateUnionTypeProvider : CodeFixProvider
 		Document document,
 		SyntaxNode root,
 		IReadOnlyList<SyntaxNode> targetNodes,
-		CancellationToken cancellationToken)
+		CancellationToken _)
 	{
 		root = root.RemoveNodes(targetNodes, SyntaxRemoveOptions.KeepNoTrivia)!;
-
 		return Task.FromResult(document.WithSyntaxRoot(root));
 	}
 }

@@ -41,7 +41,7 @@ internal sealed class RemoveRedundantAttributeArgumentProvider : CodeFixProvider
 		Document document,
 		SyntaxNode root,
 		AttributeArgumentSyntax argument,
-		CancellationToken cancellationToken)
+		CancellationToken _)
 	{
 		if (argument.Parent is not AttributeArgumentListSyntax argumentList)
 			return Task.FromResult(document);
